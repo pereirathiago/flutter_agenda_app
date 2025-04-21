@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_app/ui/schedule/schedule_view.dart';
+import 'package:flutter_agenda_app/shared/app_routes.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -9,8 +9,8 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Agenda',
       // debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const ScheduleView(),
+      initialRoute: '/',
+      routes: appRoutes,
     );
   }
 }
