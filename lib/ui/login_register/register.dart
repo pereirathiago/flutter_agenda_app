@@ -3,9 +3,11 @@ import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
 
-class LoginView extends StatelessWidget {
-  LoginView({super.key});
+class RegisterView extends StatelessWidget {
+  RegisterView({super.key});
 
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -45,7 +47,7 @@ class LoginView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Entrar',
+                    'Criar Conta',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -53,6 +55,18 @@ class LoginView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  AppInputWidget(
+                    label: 'Nome completo',
+                    hintText: 'Digite seu nome completo',
+                    controller: fullNameController,
+                  ),
+                  const SizedBox(height: 16),
+                  AppInputWidget(
+                    label: 'Nome de usuário',
+                    hintText: 'Digite seu nome de usuário',
+                    controller: usernameController,
+                  ),
+                  const SizedBox(height: 16),
                   AppInputWidget(
                     label: 'E-mail',
                     hintText: 'Digite seu e-mail',
@@ -67,7 +81,8 @@ class LoginView extends StatelessWidget {
                     controller: passwordController,
                   ),
                   const SizedBox(height: 32),
-                  AppButtonWidget(text: 'Entrar', onPressed: () {}),
+
+                  AppButtonWidget(text: 'Criar conta', onPressed: () {}),
                 ],
               ),
             ),
