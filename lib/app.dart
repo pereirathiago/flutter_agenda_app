@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_app/ui/login/login_register.dart';
+import 'package:flutter_agenda_app/shared/app_routes.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -9,7 +9,8 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Agenda',
       // debugShowCheckedModeBanner: false,
-      home: const LoginRegisterView(),
+      initialRoute: '/',
+      routes: appRoutes,
     );
   }
 }

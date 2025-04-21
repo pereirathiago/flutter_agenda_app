@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_svg/svg.dart';
 
 class LoginRegisterView extends StatelessWidget {
@@ -28,31 +29,18 @@ class LoginRegisterView extends StatelessWidget {
             ),
             Column(
               children: [
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    backgroundColor: AppColors.primary,
-                    minimumSize: const Size(double.infinity, 48),
-                  ),
-                  onPressed: () {},
-                  child: const Text('Entrar', style: TextStyle(fontSize: 20)),
+                AppButtonWidget(
+                  text: 'Entrar',
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
                 ),
                 const SizedBox(height: 16),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    backgroundColor: AppColors.primary,
-                    minimumSize: const Size(double.infinity, 48),
-                  ),
-                  onPressed: () {},
-                  child: const Text(
-                    'Criar uma conta',
-                    style: TextStyle(fontSize: 20),
-                  ),
+                AppButtonWidget(
+                  text: 'Criar uma conta',
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/register');
+                  },
                 ),
               ],
             ),
