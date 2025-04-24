@@ -67,7 +67,16 @@ class LoginView extends StatelessWidget {
                     controller: passwordController,
                   ),
                   const SizedBox(height: 32),
-                  AppButtonWidget(text: 'Entrar', onPressed: () {}),
+                  AppButtonWidget(
+                    text: 'Entrar',
+                    onPressed: () {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/schedule',
+                        (route) => false,
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
