@@ -55,7 +55,12 @@ class UserProfileView extends StatelessWidget {
               ),
               InfoCardProfileWidget(title: 'Gênero', value: 'Masculino'),
               const SizedBox(height: 16),
-              AppButtonWidget(text: 'Editar Perfil', onPressed: () {}),
+              AppButtonWidget(
+                text: 'Editar Perfil',
+                onPressed: () {
+                  Navigator.pushNamed(context, '/edit_profile');
+                },
+              ),
             ],
           ),
         ),
