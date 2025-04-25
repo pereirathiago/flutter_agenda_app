@@ -11,9 +11,14 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(60.0),
-            child: Image.asset('assets/images/profile.png'),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(60.0),
+              child: Image.asset('assets/images/profile.png'),
+            ),
           ),
         ),
       ],
