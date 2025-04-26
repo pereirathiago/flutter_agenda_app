@@ -7,6 +7,7 @@ class AppInputWidget extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final bool obscureText;
+  final bool readOnly;
   final String? Function(String?)? validator;
 
   const AppInputWidget({
@@ -17,6 +18,7 @@ class AppInputWidget extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
     this.validator,
+    this.readOnly = false,
   });
 
   @override
@@ -31,17 +33,21 @@ class AppInputWidget extends StatelessWidget {
           keyboardType: keyboardType,
           obscureText: obscureText,
           validator: validator,
+          readOnly: readOnly,
           decoration: InputDecoration(
             hintText: hintText,
             filled: true,
-            fillColor: AppColors.primaryDegrade,
+            fillColor: readOnly ? Colors.grey[200] : AppColors.primaryDegrade,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
-              borderSide: BorderSide(color: AppColors.primary, width: 2.0),
+              borderSide: BorderSide(
+                color: readOnly ? Colors.grey : AppColors.primary,
+                width: 2.0,
+              ),
             ),
           ),
         ),
