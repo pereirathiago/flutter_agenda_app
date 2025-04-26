@@ -12,6 +12,8 @@ class LocationNewView extends StatefulWidget {
 }
 
 class _LocationNewViewState extends State<LocationNewView> {
+  final _formKey = GlobalKey<FormState>();
+
   final TextEditingController _zipCodeController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _numberController = TextEditingController();
@@ -44,6 +46,8 @@ class _LocationNewViewState extends State<LocationNewView> {
   }
 
   void _saveLocation() {
+    if (_formKey.currentState?.validate() != true) return;
+
     final newLocation = Location(
       zipCode: _zipCodeController.text,
       address: _addressController.text,
@@ -63,79 +67,123 @@ class _LocationNewViewState extends State<LocationNewView> {
       appBar: const AppBarWidget(title: 'Local'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            AppInputWidget(
-              label: 'CEP',
-              hintText: 'Digite o CEP',
-              controller: _zipCodeController,
-              keyboardType: TextInputType.number,
-              readOnly: _isReadOnly,
-            ),
-            const SizedBox(height: 16),
-            AppInputWidget(
-              label: 'Endereço',
-              hintText: 'Digite o endereço',
-              controller: _addressController,
-              readOnly: _isReadOnly,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: AppInputWidget(
-                    label: 'Número',
-                    hintText: 'Digite o número',
-                    controller: _numberController,
-                    keyboardType: TextInputType.number,
-                    readOnly: _isReadOnly || _noNumber,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                if (!_isReadOnly)
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              AppInputWidget(
+                label: 'CEP',
+                hintText: 'Digite o CEP',
+                controller: _zipCodeController,
+                keyboardType: TextInputType.number,
+                readOnly: _isReadOnly,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Campo obrigatório';
+                  } else if (value.length < 8) {
+                    return 'CEP inválido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AppInputWidget(
+                label: 'Endereço',
+                hintText: 'Digite o endereço',
+                controller: _addressController,
+                readOnly: _isReadOnly,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Campo obrigatório';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
                   Expanded(
-                    child: CheckboxListTile(
-                      title: const Text('Sem número'),
-                      value: _noNumber,
-                      onChanged: (value) {
-                        setState(() {
-                          _noNumber = value ?? false;
-                          if (_noNumber) _numberController.clear();
-                        });
+                    child: AppInputWidget(
+                      label: 'Número',
+                      hintText: 'Digite o número',
+                      controller: _numberController,
+                      keyboardType: TextInputType.number,
+                      readOnly: _isReadOnly || _noNumber,
+                      validator: (value) {
+                        if (_noNumber) return null;
+                        if (value == null || value.isEmpty) {
+                          return 'Campo obrigatório';
+                        } else if (int.tryParse(value) == null) {
+                          return 'Número inválido';
+                        }
+                        return null;
                       },
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            AppInputWidget(
-              label: 'Bairro',
-              hintText: 'Digite o bairro',
-              controller: _neighborhoodController,
-              readOnly: _isReadOnly,
-            ),
-            const SizedBox(height: 16),
-            AppInputWidget(
-              label: 'Cidade',
-              hintText: 'Digite a cidade',
-              controller: _cityController,
-              readOnly: _isReadOnly,
-            ),
-            const SizedBox(height: 16),
-            AppInputWidget(
-              label: 'Estado',
-              hintText: 'Digite o estado',
-              controller: _stateController,
-              readOnly: _isReadOnly,
-            ),
-            const SizedBox(height: 32),
-            if (!_isReadOnly)
-              AppButtonWidget(
-                text: _location == null ? 'Cadastrar' : 'Editar',
-                onPressed: _saveLocation,
+                  const SizedBox(width: 16),
+                  if (!_isReadOnly)
+                    Expanded(
+                      child: CheckboxListTile(
+                        title: const Text('Sem número'),
+                        value: _noNumber,
+                        onChanged: (value) {
+                          setState(() {
+                            _noNumber = value ?? false;
+                            if (_noNumber) _numberController.clear();
+                          });
+                        },
+                      ),
+                    ),
+                ],
               ),
-          ],
+              const SizedBox(height: 16),
+              AppInputWidget(
+                label: 'Bairro',
+                hintText: 'Digite o bairro',
+                controller: _neighborhoodController,
+                readOnly: _isReadOnly,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Campo obrigatório';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AppInputWidget(
+                label: 'Cidade',
+                hintText: 'Digite a cidade',
+                controller: _cityController,
+                readOnly: _isReadOnly,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Campo obrigatório';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AppInputWidget(
+                label: 'Estado',
+                hintText: 'Digite o estado',
+                controller: _stateController,
+                readOnly: _isReadOnly,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Campo obrigatório';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 32),
+              if (!_isReadOnly)
+                AppButtonWidget(
+                  text: _location == null ? 'Cadastrar' : 'Editar',
+                  onPressed: _saveLocation,
+                ),
+            ],
+          ),
         ),
       ),
     );
