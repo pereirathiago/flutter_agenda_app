@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
 import 'package:provider/provider.dart';
@@ -38,23 +39,7 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.secondary,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12, top: 8),
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            radius: 32,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-              onPressed: () {
-                Navigator.pushNamed(context, '/');
-              },
-            ),
-          ),
-        ),
-      ),
+      appBar: AppBarWidget(showBackButton: true),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
