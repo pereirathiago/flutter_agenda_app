@@ -7,6 +7,7 @@ class AppInputWidget extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final bool obscureText;
+  final String? Function(String?)? validator;
 
   const AppInputWidget({
     super.key,
@@ -15,6 +16,7 @@ class AppInputWidget extends StatelessWidget {
     this.controller,
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
+    this.validator,
   });
 
   @override
@@ -28,6 +30,7 @@ class AppInputWidget extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
             filled: true,
