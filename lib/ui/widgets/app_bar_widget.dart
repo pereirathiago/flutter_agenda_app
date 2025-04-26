@@ -34,6 +34,20 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
           title: Text(title),
           centerTitle: true,
           actions: [
+            if (ModalRoute.of(context)?.settings.name != '/location' &&
+                ModalRoute.of(context)?.settings.name != '/new-location')
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.location_on,
+                    color: AppColors.primaryDegrade,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/location');
+                  },
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: GestureDetector(
