@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/ui/invitation/list_invitation_view.dart';
 import 'package:flutter_agenda_app/ui/login_register/login.dart';
 import 'package:flutter_agenda_app/ui/login_register/login_register.dart';
 import 'package:flutter_agenda_app/ui/login_register/register.dart';
@@ -15,4 +16,5 @@ var appRoutes = <String, WidgetBuilder>{
   '/profile': (context) => const UserProfileView(),
   '/edit_profile': (context) => EditProfileView(),
   '/new-appointment': (context) => NewAppointmentView(),
+  '/list-invitation': (context) => InvitationsScreenView(),
 };
