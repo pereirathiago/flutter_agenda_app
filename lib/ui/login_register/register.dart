@@ -22,7 +22,7 @@ class RegisterView extends StatelessWidget {
     );
 
     final user = User(
-      id: DateTime.now().toString(),
+      id: '1',
       fullName: fullNameController.text,
       username: usernameController.text,
       email: emailController.text,

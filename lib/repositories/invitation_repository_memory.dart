@@ -1,32 +1,25 @@
-import 'dart:collection';
-import 'dart:math';
-
 import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 
 class InvitationRepositoryMemory extends InvitationRepository {
-  final List<Invitation> _invitations = [];
+
+  final List<Invitation> _invitations = [
+    Invitation(
+      id: 1,
+      organizerUser: 'Organizador Teste',
+      idGuestUser: '1',
+      invitationStatus: 0,
+    ),
+  ];
 
   @override
-  List<Invitation> get invitations => UnmodifiableListView(_invitations);
+  void addInvitation(Invitation invitation) {
+  _invitations.add(invitation);
+  notifyListeners();
+}
 
   @override
-  void addInvitation({
-    required String organizerUser,
-    required String idGuestUser,
-  }) {
-    final newInvitation = Invitation(
-      id: Random().nextInt(10000),
-      organizerUser: organizerUser,
-      idGuestUser: idGuestUser,
-    );
-
-    _invitations.add(newInvitation);
-    notifyListeners();
-  }
-
-  @override
-  List<Invitation> getInvitationsForUser(String userId) {
+  List<Invitation> getInvitationsByGuestId(String userId) {
     return _invitations
         .where((inv) =>
             inv.idGuestUser == userId && inv.invitationStatus == 0)

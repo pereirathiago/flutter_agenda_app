@@ -14,7 +14,7 @@ void main() {
           create: (context) => UserRepositoryMemory(),
         ),
         ChangeNotifierProvider<InvitationRepositoryMemory>(
-          create: (_) => InvitationRepositoryMemory()),             
+          create: (_) => InvitationRepositoryMemory())             
       ],
       child: App(),
     ),

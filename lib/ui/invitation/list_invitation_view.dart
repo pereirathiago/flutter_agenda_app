@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:provider/provider.dart';
-
-import 'package:flutter_agenda_app/models/invitation.dart';
-import 'package:flutter_agenda_app/repositories/user_repository.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 
 class InvitationsScreenView extends StatelessWidget {
   const InvitationsScreenView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userRepo = Provider.of<UserRepository>(context);
-    final invitationRepo = Provider.of<InvitationRepository>(context);
+    final userRepo = context.watch<UserRepositoryMemory>();
+final invitationRepo = context.watch<InvitationRepositoryMemory>();
 
     final loggedUser = userRepo.loggedUser;
 
@@ -20,7 +18,7 @@ class InvitationsScreenView extends StatelessWidget {
     }
 
     final invitations =
-        invitationRepo.getInvitationsForUser(loggedUser.id);
+        invitationRepo.getInvitationsByGuestId('1');
 
     return Scaffold(
       appBar: AppBar(
