@@ -33,6 +33,17 @@ class _EditProfileViewState extends State<EditProfileView> {
     super.dispose();
   }
 
+  void pickTime(BuildContext context) {
+    showTimePicker(context: context, initialTime: TimeOfDay.now()).then((
+      value,
+    ) {
+      if (value != null) {
+        final time = value.format(context);
+        _birthDateController.text = time;
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -96,11 +107,38 @@ class _EditProfileViewState extends State<EditProfileView> {
               obscureText: true,
             ),
             const SizedBox(height: 16),
-            AppInputWidget(
-              label: 'Data de nascimento',
-              controller: _birthDateController,
-              hintText: 'DD/MM/AAAA',
-              keyboardType: TextInputType.datetime,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Data de nascimento'),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _birthDateController,
+                  readOnly: true,
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (date != null) {
+                        final dateTime = DateTime(
+                          date.year,
+                          date.month,
+                          date.day,
+                        );
+                        _birthDateController.text =
+                            '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Digite a data e hora de término',
+                    suffixIcon: const Icon(Icons.calendar_today),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             AppSelectWidget(

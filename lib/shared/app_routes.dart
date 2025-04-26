@@ -14,4 +14,5 @@ var appRoutes = <String, WidgetBuilder>{
   '/schedule': (context) => const ScheduleView(),
   '/profile': (context) => const UserProfileView(),
   '/edit_profile': (context) => EditProfileView(),
+  '/new-appointment': (context) => NewAppointmentView(),
 };

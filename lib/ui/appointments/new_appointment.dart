@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
-import 'package:flutter_agenda_app/ui/widgets/app_text_button_widget.dart';
 
 class NewAppointmentView extends StatelessWidget {
   NewAppointmentView({super.key});
@@ -54,26 +53,28 @@ class NewAppointmentView extends StatelessWidget {
                   controller: descriptionController,
                 ),
                 const SizedBox(height: 16),
+                Text('Data e hora de início'),
+                const SizedBox(height: 8),
                 TextField(
                   controller: startHourController,
                   readOnly: true,
                   onTap: () async {
-                  final date = await showDatePicker(
+                  final dateStart = await showDatePicker(
                     context: context,
                     initialDate: DateTime.now(),
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
-                  if (date != null) {
+                  if (dateStart != null) {
                     final time = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.now(),
                     );
                     if (time != null) {
                     final dateTime = DateTime(
-                      date.year,
-                      date.month,
-                      date.day,
+                      dateStart.year,
+                      dateStart.month,
+                      dateStart.day,
                       time.hour,
                       time.minute,
                     );
@@ -83,17 +84,47 @@ class NewAppointmentView extends StatelessWidget {
                   }
                   },
                   decoration: InputDecoration(
-                  labelText: 'Data e hora de início',
                   hintText: 'Digite a data e hora de início',
                   suffixIcon: const Icon(Icons.calendar_today),
                   border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
-                AppInputWidget(
-                  label: 'Data e hora de término',
-                  hintText: 'Digite a data e hora de término',
+                Text('Data e hora de término'),
+                const SizedBox(height: 8),
+                TextField(
                   controller: endHourController,
+                  readOnly: true,
+                  onTap: () async {
+                  final dateEnd = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (dateEnd != null) {
+                    final time = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                    );
+                    if (time != null) {
+                    final dateTime = DateTime(
+                      dateEnd.year,
+                      dateEnd.month,
+                      dateEnd.day,
+                      time.hour,
+                      time.minute,
+                    );
+                    endHourController.text =
+                      '${dateTime.day}/${dateTime.month}/${dateTime.year} ${time.format(context)}';
+                    }
+                  }
+                  },
+                  decoration: InputDecoration(
+                  hintText: 'Digite a data e hora de término',
+                  suffixIcon: const Icon(Icons.calendar_today),
+                  border: const OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 AppInputWidget(
