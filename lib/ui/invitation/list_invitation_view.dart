@@ -9,7 +9,7 @@ class InvitationsScreenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userRepo = context.watch<UserRepositoryMemory>();
-final invitationRepo = context.watch<InvitationRepositoryMemory>();
+    final invitationRepo = context.watch<InvitationRepositoryMemory>();
 
     final loggedUser = userRepo.loggedUser;
 
