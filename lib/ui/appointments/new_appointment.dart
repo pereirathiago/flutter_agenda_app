@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/models/appointment.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
+import 'package:provider/provider.dart';
 
 class NewAppointmentView extends StatelessWidget {
   NewAppointmentView({super.key});
@@ -23,8 +28,29 @@ class NewAppointmentView extends StatelessWidget {
     });
   }
 
-  void verifyDate(BuildContext context) {
+  bool verifyDate(BuildContext context) {
     final now = DateTime.now();
+
+    final title = titleController.text.trim();
+    final description = descriptionController.text.trim();
+    final local = localController.text.trim();
+    final startText = startHourController.text.trim();
+    final endText = endHourController.text.trim();
+
+    // 🔍 Validação dos campos obrigatórios! 🚨
+    if (title.isEmpty ||
+        description.isEmpty ||
+        local.isEmpty ||
+        startText.isEmpty ||
+        endText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha todos os campos obrigatórios! 🚫🛑📋'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
 
     DateTime? startDateTime;
     DateTime? endDateTime;
@@ -60,7 +86,7 @@ class NewAppointmentView extends StatelessWidget {
           backgroundColor: Colors.red,
         ),
       );
-      return;
+      return false;
     }
 
     if (startDateTime.isBefore(now)) {
@@ -70,7 +96,7 @@ class NewAppointmentView extends StatelessWidget {
           backgroundColor: Colors.red,
         ),
       );
-      return;
+      return false;
     }
 
     if (endDateTime.isBefore(now)) {
@@ -80,7 +106,7 @@ class NewAppointmentView extends StatelessWidget {
           backgroundColor: Colors.red,
         ),
       );
-      return;
+      return false;
     }
 
     if (endDateTime.isBefore(startDateTime)) {
@@ -92,7 +118,7 @@ class NewAppointmentView extends StatelessWidget {
           backgroundColor: Colors.red,
         ),
       );
-      return;
+      return false;
     }
 
     // ✅✅ Tudo certo!! Aqui você pode salvar de verdade o compromisso 🎉📅✅
@@ -102,6 +128,34 @@ class NewAppointmentView extends StatelessWidget {
         backgroundColor: Colors.green,
       ),
     );
+    return true;
+  }
+
+  void save(BuildContext context) {
+    if (!verifyDate(context)) return;
+    final appointmentsRepository = Provider.of<AppointmentsRepositoryMemory>(
+      context,
+      listen: false,
+    );
+
+    final userRepository = Provider.of<UserRepositoryMemory>(
+      context,
+      listen: false,
+    );
+
+    final appointment = Appointment(
+      title: titleController.text.trim(),
+      description: descriptionController.text.trim(),
+      local: localController.text.trim(),
+      startHourDate:
+          DateTime.tryParse(startHourController.text) ?? DateTime.now(),
+      endHourDate: DateTime.tryParse(endHourController.text) ?? DateTime.now(),
+      status: true,
+      appointmentCreator: userRepository.loggedUser!,
+    );
+
+    appointmentsRepository.addAppointment(appointment);
+    Navigator.pop(context);
   }
 
   @override
@@ -124,7 +178,7 @@ class NewAppointmentView extends StatelessWidget {
           '${dataHora.day}/${dataHora.month}/${dataHora.year} ${horaFixa.format(context)}';
     }
     return Scaffold(
-      appBar: AppBarWidget(),
+      appBar: AppBarWidget(title: 'Novo compromisso'),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -183,7 +237,6 @@ class NewAppointmentView extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Digite a data e hora de início',
                     suffixIcon: const Icon(Icons.calendar_today),
-                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -220,7 +273,6 @@ class NewAppointmentView extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Digite a data e hora de término',
                     suffixIcon: const Icon(Icons.calendar_today),
-                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -232,7 +284,7 @@ class NewAppointmentView extends StatelessWidget {
                 const SizedBox(height: 16),
                 AppButtonWidget(
                   text: 'Salvar compromisso',
-                  onPressed: () => verifyDate(context),
+                  onPressed: () => save(context),
                 ),
               ],
             ),
