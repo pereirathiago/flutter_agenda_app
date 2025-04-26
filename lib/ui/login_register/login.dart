@@ -9,10 +9,13 @@ import 'package:provider/provider.dart';
 class LoginView extends StatelessWidget {
   LoginView({super.key});
 
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   void _loginUser(context) {
+    if (!_formKey.currentState!.validate()) return;
+
     final userRepository = Provider.of<UserRepositoryMemory>(
       context,
       listen: false,
@@ -51,37 +54,58 @@ class LoginView extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Entrar',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Entrar',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  AppInputWidget(
-                    label: 'E-mail',
-                    hintText: 'Digite seu e-mail',
-                    keyboardType: TextInputType.emailAddress,
-                    controller: emailController,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputWidget(
-                    label: 'Senha',
-                    hintText: 'Digite sua senha',
-                    obscureText: true,
-                    controller: passwordController,
-                  ),
-                  const SizedBox(height: 32),
-                  AppButtonWidget(
-                    text: 'Entrar',
-                    onPressed: () => _loginUser(context),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    AppInputWidget(
+                      label: 'E-mail',
+                      hintText: 'Digite seu e-mail',
+                      keyboardType: TextInputType.emailAddress,
+                      controller: emailController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'O e-mail é obrigatório.';
+                        }
+                        if (!value.contains('@') || !value.contains('.')) {
+                          return 'Digite um e-mail válido.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    AppInputWidget(
+                      label: 'Senha',
+                      hintText: 'Digite sua senha',
+                      obscureText: true,
+                      controller: passwordController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'A senha é obrigatória.';
+                        }
+                        if (value.length < 6) {
+                          return 'A senha deve ter no mínimo 6 caracteres.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    AppButtonWidget(
+                      text: 'Entrar',
+                      onPressed: () => _loginUser(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
