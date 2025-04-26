@@ -66,20 +66,20 @@ class NewAppointmentView extends StatelessWidget {
                     lastDate: DateTime(2100),
                   );
                   if (dateStart != null) {
-                    final time = await showTimePicker(
+                    final timeStart = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.now(),
                     );
-                    if (time != null) {
-                    final dateTime = DateTime(
+                    if (timeStart != null) {
+                    final dateTimeStart = DateTime(
                       dateStart.year,
                       dateStart.month,
                       dateStart.day,
-                      time.hour,
-                      time.minute,
+                      timeStart.hour,
+                      timeStart.minute,
                     );
                     startHourController.text =
-                      '${dateTime.day}/${dateTime.month}/${dateTime.year} ${time.format(context)}';
+                      '${dateTimeStart.day}/${dateTimeStart.month}/${dateTimeStart.year} ${timeStart.format(context)}';
                     }
                   }
                   },
@@ -103,20 +103,20 @@ class NewAppointmentView extends StatelessWidget {
                     lastDate: DateTime(2100),
                   );
                   if (dateEnd != null) {
-                    final time = await showTimePicker(
+                    final timeEnd = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.now(),
                     );
-                    if (time != null) {
-                    final dateTime = DateTime(
+                    if (timeEnd != null) {
+                    final dateTimeEnd = DateTime(
                       dateEnd.year,
                       dateEnd.month,
                       dateEnd.day,
-                      time.hour,
-                      time.minute,
+                      timeEnd.hour,
+                      timeEnd.minute,
                     );
                     endHourController.text =
-                      '${dateTime.day}/${dateTime.month}/${dateTime.year} ${time.format(context)}';
+                      '${dateTimeEnd.day}/${dateTimeEnd.month}/${dateTimeEnd.year} ${timeEnd.format(context)}';
                     }
                   }
                   },
