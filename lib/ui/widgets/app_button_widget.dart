@@ -4,11 +4,13 @@ import 'package:flutter_agenda_app/shared/app_colors.dart';
 class AppButtonWidget extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
+  final Color? backgroundColor;
 
   const AppButtonWidget({
     super.key,
     required this.text,
     required this.onPressed,
+    this.backgroundColor = AppColors.primary,
   });
 
   @override
@@ -16,7 +18,7 @@ class AppButtonWidget extends StatelessWidget {
     return FilledButton(
       style: FilledButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        backgroundColor: AppColors.primary,
+        backgroundColor: backgroundColor,
         minimumSize: const Size(double.infinity, 48),
       ),
       onPressed: onPressed,
