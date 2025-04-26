@@ -71,6 +71,41 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
             child: SfCalendar(
               key: ValueKey(_calendarView),
               view: _calendarView,
+              onTap: (CalendarTapDetails details) {
+                final DateTime? tappedDate = details.date;
+
+                if (details.targetElement == CalendarElement.calendarCell &&
+                    tappedDate != null) {
+                  final DateTime now = DateTime.now();
+                  final DateTime today = DateTime(now.year, now.month, now.day);
+
+                  final DateTime selected = DateTime(
+                    tappedDate.year,
+                    tappedDate.month,
+                    tappedDate.day,
+                  );
+
+                  if (selected.isBefore(today)) {
+                    // dia anterior ao hoje ⛔️❌⏳
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Não é possível agendar em datas passadas! ⏳🚫',
+                        ),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Tudo certo! Navega com a data! 🛫📅✨
+                  Navigator.pushNamed(
+                    context,
+                    '/new-appointment',
+                    arguments: tappedDate,
+                  );
+                }
+              },
               headerStyle: CalendarHeaderStyle(
                 textAlign: TextAlign.center,
                 backgroundColor: Colors.transparent,
