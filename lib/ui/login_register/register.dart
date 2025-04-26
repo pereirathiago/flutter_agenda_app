@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/models/user.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
+import 'package:provider/provider.dart';
 
 class RegisterView extends StatelessWidget {
   RegisterView({super.key});
@@ -10,6 +13,24 @@ class RegisterView extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  void _registerUser(context) {
+    final userRepository = Provider.of<UserRepositoryMemory>(
+      context,
+      listen: false,
+    );
+
+    final user = User(
+      id: DateTime.now().toString(),
+      fullName: fullNameController.text,
+      username: usernameController.text,
+      email: emailController.text,
+      password: passwordController.text,
+    );
+
+    userRepository.register(user);
+    Navigator.pushNamed(context, '/login');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +103,10 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
 
-                  AppButtonWidget(text: 'Criar conta', onPressed: () {}),
+                  AppButtonWidget(
+                    text: 'Criar conta',
+                    onPressed: () => _registerUser(context),
+                  ),
                 ],
               ),
             ),

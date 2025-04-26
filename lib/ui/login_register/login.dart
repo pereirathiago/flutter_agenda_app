@@ -1,13 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
+import 'package:provider/provider.dart';
 
 class LoginView extends StatelessWidget {
   LoginView({super.key});
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  void _loginUser(context) {
+    final userRepository = Provider.of<UserRepositoryMemory>(
+      context,
+      listen: false,
+    );
+
+    bool userLogged = userRepository.login(
+      emailController.text,
+      passwordController.text,
+    );
+
+    if (!userLogged) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('E-mail ou senha inválidos.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    Navigator.pushNamedAndRemoveUntil(context, '/schedule', (route) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +49,7 @@ class LoginView extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: AppColors.primary),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pushNamed(context, '/');
               },
             ),
           ),
@@ -69,13 +94,7 @@ class LoginView extends StatelessWidget {
                   const SizedBox(height: 32),
                   AppButtonWidget(
                     text: 'Entrar',
-                    onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/schedule',
-                        (route) => false,
-                      );
-                    },
+                    onPressed: () => _loginUser(context),
                   ),
                 ],
               ),
