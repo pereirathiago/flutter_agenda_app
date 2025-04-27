@@ -10,27 +10,36 @@ import 'package:provider/provider.dart';
 class RegisterView extends StatelessWidget {
   RegisterView({super.key});
 
+  final _formKey = GlobalKey<FormState>();
+
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   void _registerUser(context) {
+    if (!_formKey.currentState!.validate()) return;
     final userRepository = Provider.of<UserRepositoryMemory>(
       context,
       listen: false,
     );
 
-    final user = User(
-      id: '1',
-      fullName: fullNameController.text,
-      username: usernameController.text,
-      email: emailController.text,
-      password: passwordController.text,
-    );
+    try {
+      final user = User(
+        fullName: fullNameController.text,
+        username: usernameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+      );
 
-    userRepository.register(user);
-    Navigator.pushNamed(context, '/login');
+      userRepository.register(user);
+
+      Navigator.pushNamed(context, '/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+      );
+    }
   }
 
   @override
@@ -49,50 +58,83 @@ class RegisterView extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Criar Conta',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Criar Conta',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  AppInputWidget(
-                    label: 'Nome completo',
-                    hintText: 'Digite seu nome completo',
-                    controller: fullNameController,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputWidget(
-                    label: 'Nome de usuário',
-                    hintText: 'Digite seu nome de usuário',
-                    controller: usernameController,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputWidget(
-                    label: 'E-mail',
-                    hintText: 'Digite seu e-mail',
-                    keyboardType: TextInputType.emailAddress,
-                    controller: emailController,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputWidget(
-                    label: 'Senha',
-                    hintText: 'Digite sua senha',
-                    obscureText: true,
-                    controller: passwordController,
-                  ),
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+                    AppInputWidget(
+                      label: 'Nome completo',
+                      hintText: 'Digite seu nome completo',
+                      controller: fullNameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nome completo é obrigatório.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    AppInputWidget(
+                      label: 'Nome de usuário',
+                      hintText: 'Digite seu nome de usuário',
+                      controller: usernameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nome de usuário é obrigatório.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    AppInputWidget(
+                      label: 'E-mail',
+                      hintText: 'Digite seu e-mail',
+                      keyboardType: TextInputType.emailAddress,
+                      controller: emailController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'E-mail é obrigatório.';
+                        }
+                        if (!value.contains('@') || !value.contains('.')) {
+                          return 'Digite um e-mail válido.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    AppInputWidget(
+                      label: 'Senha',
+                      hintText: 'Digite sua senha',
+                      obscureText: true,
+                      controller: passwordController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Senha é obrigatória.';
+                        }
+                        if (value.length < 6) {
+                          return 'Senha deve ter no mínimo 6 caracteres.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 32),
 
-                  AppButtonWidget(
-                    text: 'Criar conta',
-                    onPressed: () => _registerUser(context),
-                  ),
-                ],
+                    AppButtonWidget(
+                      text: 'Criar conta',
+                      onPressed: () => _registerUser(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
