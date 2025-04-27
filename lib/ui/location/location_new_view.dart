@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/location.dart';
+import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
+import 'package:provider/provider.dart';
 
 class LocationNewView extends StatefulWidget {
   const LocationNewView({super.key});
@@ -46,9 +48,15 @@ class _LocationNewViewState extends State<LocationNewView> {
   }
 
   void _saveLocation() {
-    if (_formKey.currentState?.validate() != true) return;
+    if (!_formKey.currentState!.validate()) return;
 
-    final newLocation = Location(
+    final locationRepository = Provider.of<LocationRepositoryMemory>(
+      context,
+      listen: false,
+    );
+
+    final location = Location(
+      id: _location?.id,
       zipCode: _zipCodeController.text,
       address: _addressController.text,
       noNumber: _noNumber,
@@ -58,7 +66,25 @@ class _LocationNewViewState extends State<LocationNewView> {
       neighborhood: _neighborhoodController.text,
     );
 
-    Navigator.pop(context, newLocation);
+    if (_location == null) {
+      locationRepository.add(location);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Local cadastrado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      locationRepository.update(location);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Local atualizado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+
+    Navigator.pop(context, true);
   }
 
   @override

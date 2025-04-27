@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_app/models/location.dart';
+import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
+import 'package:provider/provider.dart';
 
-class LocationListView extends StatelessWidget {
+class LocationListView extends StatefulWidget {
   const LocationListView({super.key});
 
   @override
+  State<LocationListView> createState() => _LocationListViewState();
+}
+
+class _LocationListViewState extends State<LocationListView> {
+  @override
   Widget build(BuildContext context) {
-    List<Location> locations = [];
+    final locationRepository = Provider.of<LocationRepositoryMemory>(
+      context,
+      listen: true,
+    );
+    final locations = locationRepository.getAll('');
 
     return Scaffold(
       appBar: const AppBarWidget(title: 'Meus Locais'),
@@ -42,14 +52,60 @@ class LocationListView extends StatelessWidget {
                       padding: const EdgeInsets.only(right: 16),
                       child: const Icon(Icons.delete, color: Colors.white),
                     ),
-                    onDismissed: (direction) {
+                    confirmDismiss: (direction) async {
                       if (direction == DismissDirection.startToEnd) {
                         Navigator.pushNamed(
                           context,
                           '/new-location',
                           arguments: {'location': location},
                         );
-                      } else if (direction == DismissDirection.endToStart) {}
+                        return false;
+                      } else if (direction == DismissDirection.endToStart) {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: const Text('Excluir'),
+                                content: const Text(
+                                  'Deseja realmente excluir este local?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, false),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, true),
+                                    child: const Text('Excluir'),
+                                  ),
+                                ],
+                              ),
+                        );
+                        if (confirm == true) {
+                          final messenger = ScaffoldMessenger.of(context);
+                          locationRepository.remove(location.id!);
+                          setState(() {});
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                'Local excluído com sucesso!',
+                              ),
+                              action: SnackBarAction(
+                                label: 'Desfazer',
+                                onPressed: () {
+                                  locationRepository.add(location);
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          );
+                          return confirm;
+                        }
+                        return false;
+                      }
+                      return false;
                     },
                     child: ListTile(
                       leading: const Icon(
@@ -61,7 +117,7 @@ class LocationListView extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        '${location.number ?? 'S/N'} - ${location.city ?? 'Cidade desconhecida'}',
+                        '${location.number?.isEmpty == true ? 'S/N' : location.number} - ${location.city ?? 'Cidade desconhecida'}',
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
