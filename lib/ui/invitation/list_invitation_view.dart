@@ -21,9 +21,6 @@ class InvitationsScreenView extends StatelessWidget {
         invitationRepo.getInvitationsByGuestId('1');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Convites Recebidos'),
-      ),
       body: invitations.isEmpty
           ? const Center(child: Text('Nenhum convite pendente.'))
           : ListView.builder(
