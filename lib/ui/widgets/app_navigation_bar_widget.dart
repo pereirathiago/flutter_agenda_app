@@ -37,7 +37,8 @@ class AppNavigationBarWidget extends StatelessWidget {
               label: 'Lista',
             ),
             NavigationDestination(
-              icon: Icon(Icons.mail),
+              icon: Icon(Icons.mail_outline),
+              selectedIcon: Icon(Icons.mail),
               label: 'Convites')
           ],
         );

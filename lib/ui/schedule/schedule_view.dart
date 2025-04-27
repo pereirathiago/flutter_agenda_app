@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/invitation/list_invitation_view.dart';
 import 'package:flutter_agenda_app/ui/schedule/calendar_schedule_view.dart';
+import 'package:flutter_agenda_app/ui/schedule/list_schedule_view.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_navigation_bar_widget.dart';
 
@@ -30,7 +31,7 @@ class _ScheduleViewState extends State<ScheduleView> {
      ValueListenableBuilder<int>(
       valueListenable: currentPageNotifier,
       builder: (context, currentPage, child) {
-        return (currentPage == 0) 
+        return (currentPage != 2) 
             ?
       FloatingActionButton(
         onPressed: () {
@@ -46,7 +47,7 @@ class _ScheduleViewState extends State<ScheduleView> {
         onPageChanged: (index) {
           currentPageNotifier.value = index;
         },
-        children: [CalendarScheduleViewPage(), CalendarScheduleViewPage(), InvitationsScreenView()],
+        children: [CalendarScheduleViewPage(), ListScheduleView(), InvitationsScreenView()],
       ),
       bottomNavigationBar: AppNavigationBarWidget(
         pageController: pc,
