@@ -35,8 +35,9 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
   }
 
   @override
-  void removeAppointment(Appointment appointment) {
-    // TODO: implement removeAppointment
+  void removeAppointment(int id) {
+    _appointments.removeWhere((appointment) => appointment.id == id);
+    notifyListeners();
   }
 
 @override

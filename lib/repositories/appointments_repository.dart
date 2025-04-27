@@ -5,6 +5,6 @@ abstract class AppointmentsRepository extends ChangeNotifier {
   List<Appointment> get appointments;
 
   void addAppointment(Appointment appointment);
-  void removeAppointment(Appointment appointment);
+  void removeAppointment(int id);
   void updateAppointment(Appointment appointment);
 }
