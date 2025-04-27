@@ -42,6 +42,19 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     }
   }
 
+  String formatDateTime(DateTime dateTime) {
+    String formatTwoDigits(String input) {
+      final regex = RegExp(r'^\d$');
+
+      if (regex.hasMatch(input)) {
+        return '0$input';
+      }
+      return input;
+    }
+
+    return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(dateTime.hour.toString())}:${formatTwoDigits(dateTime.minute.toString())}';
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -222,11 +235,12 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         horaFixa.hour,
         horaFixa.minute,
       );
-      startHourController.text =
-          '${dataHora.day}/${dataHora.month}/${dataHora.year} ${horaFixa.format(context)}';
+      startHourController.text = formatDateTime(dataHora);
     }
     return Scaffold(
-      appBar: AppBarWidget(title: 'Novo compromisso'),
+      appBar: AppBarWidget(
+        title: _isReadOnly ? 'Compromisso' : 'Novo compromisso',
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -244,12 +258,14 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   label: 'Título',
                   hintText: 'Digite o nome do evento',
                   controller: titleController,
+                  readOnly: _isReadOnly,
                 ),
                 const SizedBox(height: 16),
                 AppInputWidget(
                   label: 'Descrição',
                   hintText: 'Digite a descrição do evento',
                   controller: descriptionController,
+                  readOnly: _isReadOnly,
                 ),
                 const SizedBox(height: 16),
                 Text('Data e hora de início'),
@@ -258,6 +274,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   controller: startHourController,
                   readOnly: true,
                   onTap: () async {
+                    if (_isReadOnly) return;
                     final dateStart = await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
@@ -293,7 +310,9 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                 TextField(
                   controller: endHourController,
                   readOnly: true,
+
                   onTap: () async {
+                    if (_isReadOnly) return;
                     final dateEnd = await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
@@ -328,6 +347,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   label: 'Local',
                   hintText: 'Digite o local do evento',
                   controller: localController,
+                  readOnly: _isReadOnly,
                 ),
                 const SizedBox(height: 16),
                 if (!_isReadOnly)

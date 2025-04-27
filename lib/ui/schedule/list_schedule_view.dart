@@ -10,6 +10,19 @@ class ListScheduleView extends StatefulWidget {
   State<ListScheduleView> createState() => _ListScheduleViewState();
 }
 
+String formatDateTime(DateTime dateTime) {
+  String formatTwoDigits(String input) {
+    final regex = RegExp(r'^\d$');
+
+    if (regex.hasMatch(input)) {
+      return '0$input';
+    }
+    return input;
+  }
+
+  return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(dateTime.hour.toString())}:${formatTwoDigits(dateTime.minute.toString())}';
+}
+
 class _ListScheduleViewState extends State<ListScheduleView> {
   @override
   Widget build(BuildContext context) {
@@ -97,8 +110,8 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Local: ${appointment.local}'),
-                  Text('Início: ${appointment.startHourDate}'),
-                  Text('Fim: ${appointment.endHourDate}'),
+                  Text('Início: ${formatDateTime(appointment.startHourDate)}'),
+                  Text('Fim: ${formatDateTime(appointment.endHourDate)}'),
                 ],
               ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
