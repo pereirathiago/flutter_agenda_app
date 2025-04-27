@@ -102,7 +102,7 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
                   Navigator.pushNamed(
                     context,
                     '/new-appointment',
-                    arguments: tappedDate,
+                    arguments: {'startHourDate': tappedDate},
                   );
                 }
               },

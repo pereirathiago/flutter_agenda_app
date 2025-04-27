@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
@@ -8,14 +7,58 @@ import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
 import 'package:provider/provider.dart';
 
-class NewAppointmentView extends StatelessWidget {
+class NewAppointmentView extends StatefulWidget {
   NewAppointmentView({super.key});
 
+  @override
+  State<NewAppointmentView> createState() => _NewAppointmentViewState();
+}
+
+class _NewAppointmentViewState extends State<NewAppointmentView> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController startHourController = TextEditingController();
   final TextEditingController endHourController = TextEditingController();
   final TextEditingController localController = TextEditingController();
+
+  bool _isReadOnly = false;
+
+  Appointment? _appointment;
+  DateTime? parseDateTime(String dateTimeText) {
+    try {
+      final parts = dateTimeText.split(' ');
+      final dateParts = parts[0].split('/');
+      final timeParts = parts[1].split(':');
+
+      return DateTime(
+        int.parse(dateParts[2]),
+        int.parse(dateParts[1]),
+        int.parse(dateParts[0]),
+        int.parse(timeParts[0]),
+        int.parse(timeParts[1]),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    if (arguments != null && arguments is Map) {
+      _appointment = arguments['appointment'] as Appointment?;
+      _isReadOnly = arguments['readonly'] == true;
+
+      if (_appointment != null) {
+        titleController.text = _appointment?.title ?? '';
+        descriptionController.text = _appointment?.description ?? '';
+        startHourController.text = _appointment?.startHourDate.toString() ?? '';
+        endHourController.text = _appointment?.endHourDate.toString() ?? '';
+        localController.text = _appointment?.local ?? '';
+      }
+    }
+  }
 
   void pickTime(BuildContext context) {
     showTimePicker(context: context, initialTime: TimeOfDay.now()).then((
@@ -147,23 +190,27 @@ class NewAppointmentView extends StatelessWidget {
       title: titleController.text.trim(),
       description: descriptionController.text.trim(),
       local: localController.text.trim(),
-      startHourDate:
-          DateTime.tryParse(startHourController.text) ?? DateTime.now(),
-      endHourDate: DateTime.tryParse(endHourController.text) ?? DateTime.now(),
+      startHourDate: parseDateTime(startHourController.text) ?? DateTime.now(),
+      endHourDate: parseDateTime(endHourController.text) ?? DateTime.now(),
       status: true,
       appointmentCreator: userRepository.loggedUser!,
     );
 
     appointmentsRepository.addAppointment(appointment);
-    print(appointmentsRepository.appointments);
+    print(startHourController.text);
+    print(endHourController.text);
+    print('data formatada ${DateTime.tryParse(startHourController.text)}');
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
     // 🌟 Pegando a data passada pelo Navigator.pushNamed 🌟
     final DateTime? dataSelecionada =
-        ModalRoute.of(context)!.settings.arguments as DateTime?;
+        arguments != null
+            ? (arguments as Map)['startHourDate'] as DateTime?
+            : null;
 
     // ✨ Se a data veio, formata e já joga no campo! ✨
     if (dataSelecionada != null && startHourController.text.isEmpty) {
@@ -283,10 +330,11 @@ class NewAppointmentView extends StatelessWidget {
                   controller: localController,
                 ),
                 const SizedBox(height: 16),
-                AppButtonWidget(
-                  text: 'Salvar compromisso',
-                  onPressed: () => save(context),
-                ),
+                if (!_isReadOnly)
+                  AppButtonWidget(
+                    text: 'Salvar compromisso',
+                    onPressed: () => save(context),
+                  ),
               ],
             ),
           ),

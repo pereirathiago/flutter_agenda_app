@@ -3,9 +3,14 @@ import 'package:flutter_agenda_app/repositories/appointments_repository_memory.d
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
-class ListScheduleView extends StatelessWidget {
+class ListScheduleView extends StatefulWidget {
   const ListScheduleView({super.key});
 
+  @override
+  State<ListScheduleView> createState() => _ListScheduleViewState();
+}
+
+class _ListScheduleViewState extends State<ListScheduleView> {
   @override
   Widget build(BuildContext context) {
     final appointmentsRepository = Provider.of<AppointmentsRepositoryMemory>(
@@ -32,14 +37,56 @@ class ListScheduleView extends StatelessWidget {
               padding: const EdgeInsets.only(right: 16),
               child: const Icon(Icons.delete, color: Colors.white),
             ),
-            onDismissed: (direction) {
+            confirmDismiss: (direction) async {
               if (direction == DismissDirection.startToEnd) {
                 Navigator.pushNamed(
                   context,
                   '/new-appointment',
                   arguments: {'appointment': appointment},
                 );
-              } else if (direction == DismissDirection.endToStart) {}
+                return false;
+              } else if (direction == DismissDirection.endToStart) {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Excluir'),
+                        content: const Text(
+                          'Deseja realmente excluir este local?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancelar'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Excluir'),
+                          ),
+                        ],
+                      ),
+                );
+                if (confirm == true) {
+                  final messenger = ScaffoldMessenger.of(context);
+                  appointmentsRepository.removeAppointment(appointment.id!);
+                  setState(() {});
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Local excluído com sucesso!'),
+                      action: SnackBarAction(
+                        label: 'Desfazer',
+                        onPressed: () {
+                          appointmentsRepository.addAppointment(appointment);
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  );
+                  return confirm;
+                }
+                return false;
+              }
+              return false;
             },
             child: ListTile(
               title: Text(
