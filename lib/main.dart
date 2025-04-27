@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/app.dart';
+import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +10,9 @@ void main() {
       providers: [
         ChangeNotifierProvider<UserRepositoryMemory>(
           create: (context) => UserRepositoryMemory(),
+        ),
+        ChangeNotifierProvider<LocationRepositoryMemory>(
+          create: (context) => LocationRepositoryMemory(),
         ),
       ],
       child: App(),
