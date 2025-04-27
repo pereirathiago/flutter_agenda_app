@@ -52,7 +52,12 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       return input;
     }
 
-    return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(dateTime.hour.toString())}:${formatTwoDigits(dateTime.minute.toString())}';
+    String period = dateTime.hour < 12 ? 'AM' : 'PM';
+    int hour12 =
+        dateTime.hour > 12
+            ? dateTime.hour - 12
+            : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(hour12.toString())}:${formatTwoDigits(dateTime.minute.toString())} $period';
   }
 
   @override
@@ -66,8 +71,14 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       if (_appointment != null) {
         titleController.text = _appointment?.title ?? '';
         descriptionController.text = _appointment?.description ?? '';
-        startHourController.text = _appointment?.startHourDate.toString() ?? '';
-        endHourController.text = _appointment?.endHourDate.toString() ?? '';
+        startHourController.text =
+            _appointment?.startHourDate != null
+                ? formatDateTime(_appointment!.startHourDate)
+                : '';
+        endHourController.text =
+            _appointment?.endHourDate != null
+                ? formatDateTime(_appointment!.endHourDate)
+                : '';
         localController.text = _appointment?.local ?? '';
       }
     }
