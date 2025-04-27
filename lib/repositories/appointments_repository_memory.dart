@@ -3,15 +3,18 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
+import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:flutter_agenda_app/ui/appointments/new_appointment.dart';
 
 class AppointmentsRepositoryMemory extends ChangeNotifier
     implements AppointmentsRepository {
   final List<Appointment> _appointments = [];
+  final List<Invitation> _invitations = [];
 
   @override
   List<Appointment> get appointments => UnmodifiableListView(_appointments);
+  List<Invitation> get invitations => UnmodifiableListView(_invitations);
 
   @override
   void addAppointment(Appointment appointment) {
@@ -24,6 +27,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
       endHourDate: appointment.endHourDate,
       appointmentCreator: appointment.appointmentCreator,
       local: appointment.local,
+      invitations: [],
     );
 
     if (_appointments.any((a) => a.id == newAppointment.id)) {
@@ -40,17 +44,37 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
     notifyListeners();
   }
 
-@override
-void updateAppointment(Appointment updatedAppointment) {
-  final index = _appointments.indexWhere((a) => a.id == updatedAppointment.id);
+  @override
+  void updateAppointment(Appointment updatedAppointment) {
+    final index = _appointments.indexWhere(
+      (a) => a.id == updatedAppointment.id,
+    );
 
-  if (index == -1) {
-    throw Exception('Appointment not found 😢📅');
+    if (index == -1) {
+      throw Exception('Appointment not found 😢📅');
+    }
+
+    _appointments[index] = updatedAppointment;
+
+    notifyListeners(); // Atualiza todo mundo feliz 🥳🎈
   }
 
-  _appointments[index] = updatedAppointment;
+  void addInvitation(Invitation invitation) {
+    _invitations.add(invitation);
+    notifyListeners();
+  }
 
-  notifyListeners(); // Atualiza todo mundo feliz 🥳🎈
-}
+  List<Invitation> getInvitationsByOrganizer(String organizerUser) {
+    return _invitations
+        .where((invitation) => invitation.organizerUser == organizerUser)
+        .toList();
+  }
 
+  List<Invitation> getInvitationsByAppointmentCreator(
+    String appointmentCreator,
+  ) {
+    return _invitations
+        .where((invitation) => invitation.organizerUser == appointmentCreator)
+        .toList();
+  }
 }

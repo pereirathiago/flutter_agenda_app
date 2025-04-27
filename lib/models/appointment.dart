@@ -1,3 +1,4 @@
+import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/models/user.dart';
 
 class Appointment {
@@ -9,6 +10,7 @@ class Appointment {
   final DateTime endHourDate;
   final User appointmentCreator;
   final String local;
+  final List<Invitation> invitations;
 
   Appointment({
     this.id,
@@ -19,5 +21,6 @@ class Appointment {
     required this.endHourDate,
     required this.appointmentCreator,
     required this.local,
-  });
+    List<Invitation>? invitations,
+  }) : invitations = invitations ?? [];
 }

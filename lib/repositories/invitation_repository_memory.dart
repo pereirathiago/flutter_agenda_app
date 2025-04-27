@@ -2,7 +2,6 @@ import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 
 class InvitationRepositoryMemory extends InvitationRepository {
-
   final List<Invitation> _invitations = [
     Invitation(
       id: 1,
@@ -12,17 +11,18 @@ class InvitationRepositoryMemory extends InvitationRepository {
     ),
   ];
 
+  List<Invitation> get invitations => _invitations; // 🆕 Adicionado Getter
+
   @override
   void addInvitation(Invitation invitation) {
-  _invitations.add(invitation);
-  notifyListeners();
-}
+    _invitations.add(invitation);
+    notifyListeners();
+  }
 
   @override
   List<Invitation> getInvitationsByGuestId(String userId) {
     return _invitations
-        .where((inv) =>
-            inv.idGuestUser == userId && inv.invitationStatus == 0)
+        .where((inv) => inv.idGuestUser == userId && inv.invitationStatus == 0)
         .toList();
   }
 
