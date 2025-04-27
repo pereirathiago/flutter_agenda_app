@@ -1,76 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class ListScheduleView extends StatelessWidget {
-  ListScheduleView({super.key});
-
-  final List<Map<String, String>> compromissosTeste = [
-  {
-    'titulo': 'Reunião com equipe 🧑‍💼👩‍💻',
-    'descricao': 'Discutir andamento do projeto Flutter 🚀📱',
-    'local': 'Sala 1 - Escritório Central 🏢',
-    'inicio': '25/04/2025 10:00',
-    'fim': '25/04/2025 11:00',
-  },
-  {
-    'titulo': 'Consulta médica 🩺👨‍⚕️',
-    'descricao': 'Check-up de rotina ❤️',
-    'local': 'Clínica Saúde & Vida 🏥',
-    'inicio': '26/04/2025 08:30',
-    'fim': '26/04/2025 09:00',
-  },
-  {
-    'titulo': 'Aniversário da Ana 🎉🎂',
-    'descricao': 'Festa surpresa no salão de festas! 🎈🎁',
-    'local': 'Buffet Alegria 🎊',
-    'inicio': '27/04/2025 19:00',
-    'fim': '27/04/2025 23:00',
-  },
-  {
-    'titulo': 'Aula de piano 🎹🎶',
-    'descricao': 'Prática da nova música 🎼',
-    'local': 'Escola de Música Harmonia 🎵',
-    'inicio': '28/04/2025 14:00',
-    'fim': '28/04/2025 15:00',
-  },
-  {
-    'titulo': 'Live de tecnologia 💻📡',
-    'descricao': 'Assistir webinar sobre IA e Flutter 🤖🔥',
-    'local': 'YouTube Live 🌐',
-    'inicio': '29/04/2025 20:00',
-    'fim': '29/04/2025 21:30',
-  },
-];
-
+  const ListScheduleView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final appointmentsRepository = Provider.of<AppointmentsRepositoryMemory>(context);
+    final appointments = appointmentsRepository.appointments;
+
     return Scaffold(
       body: ListView.separated(
-        itemBuilder: (BuildContext context, int moeda) {
-          return ListTile(
-            title: Text(compromissosTeste[moeda]['titulo']!),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(compromissosTeste[moeda]['descricao']!),
-                Text(compromissosTeste[moeda]['local']!),
-                Text(
-                  '${compromissosTeste[moeda]['inicio']} - ${compromissosTeste[moeda]['fim']}',
-                ),
-              ],
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.remove_red_eye_outlined, color: AppColors.primary),
-              onPressed: () {
-                // Lógica para excluir o compromisso
-              },
-            ),
-          );
+        itemBuilder: (BuildContext context, int index) {
+          final appointment = appointments[index];
+                            return Dismissible(
+                    key: Key(appointment.id.toString()),
+                    direction: DismissDirection.horizontal,
+                    background: Container(
+                      color: AppColors.alert,
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(left: 16),
+                      child: const Icon(Icons.edit, color: Colors.white),
+                    ),
+                    secondaryBackground: Container(
+                      color: AppColors.delete,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 16),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    onDismissed: (direction) {
+                      if (direction == DismissDirection.startToEnd) {
+                        Navigator.pushNamed(
+                          context,
+                          '/new-appointment',
+                          arguments: {'appointment': appointment},
+                        );
+                      } else if (direction == DismissDirection.endToStart) {}
+                    },
+                    child: ListTile(
+                      leading: const Icon(
+                      Icons.location_on,
+                      color: AppColors.primary,
+                      ),
+                      title: Text(
+                      appointment.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Local: ${appointment.local}'),
+                        Text('Início: ${appointment.startHourDate}'),
+                        Text('Fim: ${appointment.endHourDate}'),
+                      ],
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/new-appoin',
+                          arguments: {'appointment': location, 'readonly': true},
+                        );
+                      },
+                    ),
+                  );
         },
-        padding: EdgeInsets.all(10),
-        separatorBuilder: (_____, ___) => Divider(),
-        itemCount: compromissosTeste.length,
+        padding: const EdgeInsets.all(10),
+        separatorBuilder: (_, __) => const Divider(),
+        itemCount: appointments.length,
       ),
     );
   }

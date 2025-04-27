@@ -155,6 +155,7 @@ class NewAppointmentView extends StatelessWidget {
     );
 
     appointmentsRepository.addAppointment(appointment);
+    print(appointmentsRepository.appointments);
     Navigator.pop(context);
   }
 
