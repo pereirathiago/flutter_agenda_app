@@ -81,7 +81,7 @@ Para instalar e executar o projeto no ambiente local:
 
 - A foto de perfil do usuário ainda não é alterável, permanecendo fixa após o cadastro inicial.
 - Inclusão de um campo do tipo **SELECT** na tela de criação de compromisso, permitindo a seleção dos locais cadastrados, evitando a necessidade de digitação manual do local.
-- Inclusão de um campo do tipo **SELECT** na tela de visualização de compromisso, na funcionalidade de convite de participantes, permitindo escolher o usuário a ser convidado sem a necessidade de digitar manualmente o identificador ou nome.
+- Inclusão de um campo do tipo **SELECT** na tela de edição de compromisso, na funcionalidade de convite de participantes, permitindo escolher o usuário a ser convidado sem a necessidade de digitar manualmente o identificador ou nome.
 
 ---
 
