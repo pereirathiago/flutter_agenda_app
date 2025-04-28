@@ -68,6 +68,15 @@ Para instalar e executar o projeto no ambiente local:
 
 ---
 
+## Bugs Conhecidos
+
+- Ao excluir um compromisso e, em seguida, selecionar a opção para desfazer a exclusão, os convidados previamente associados ao compromisso não são recuperados, resultando na perda dessas informações.
+- Compromissos e locais são atualmente compartilhados entre todos os usuários, não sendo filtrados individualmente para que cada usuário visualize apenas os compromissos e locais que criou.
+- A foto de perfil do usuário ainda não é alterável, permanecendo fixa após o cadastro inicial.
+- Após o cadastro de um novo compromisso, sua exibição no calendário dinâmico depende de uma interação manual do usuário na tela (como rolar ou navegar), para que a lista de compromissos seja atualizada e o novo compromisso apareça.
+
+---
+
 ## Licença
 
 Este projeto está sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
