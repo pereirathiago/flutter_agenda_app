@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
@@ -65,7 +67,7 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                       (context) => AlertDialog(
                         title: const Text('Excluir'),
                         content: const Text(
-                          'Deseja realmente excluir este local?',
+                          'Deseja realmente excluir este compromisso?',
                         ),
                         actions: [
                           TextButton(
@@ -79,24 +81,63 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                         ],
                       ),
                 );
+
                 if (confirm == true) {
                   final messenger = ScaffoldMessenger.of(context);
-                  appointmentsRepository.removeAppointment(appointment.id!);
+
+                  // Salva os dados para possível desfazer
+                  final oldAppointment = appointment;
+                  final oldInvitations = List.from(
+                    Provider.of<InvitationRepositoryMemory>(
+                      context,
+                      listen: false,
+                    ).invitations.where(
+                      (inv) => inv.appointmentId == appointment.id,
+                    ),
+                  );
+
+                  // Remove compromisso e convites associados
+                  Provider.of<AppointmentsRepositoryMemory>(
+                    context,
+                    listen: false,
+                  ).removeAppointment(appointment.id!);
+                  Provider.of<InvitationRepositoryMemory>(
+                    context,
+                    listen: false,
+                  ).removeInvitationsByAppointmentId(appointment.id!);
+
+                  // Atualiza a tela
                   setState(() {});
+
+                  // Mostra a snackbar com ação de desfazer
                   messenger.showSnackBar(
                     SnackBar(
-                      content: const Text('Local excluído com sucesso!'),
+                      content: const Text('Compromisso excluído com sucesso!'),
                       action: SnackBarAction(
                         label: 'Desfazer',
                         onPressed: () {
-                          appointmentsRepository.addAppointment(appointment);
+                          // Restaura compromisso e convites
+                          Provider.of<AppointmentsRepositoryMemory>(
+                            context,
+                            listen: false,
+                          ).addAppointment(oldAppointment);
+
+                          for (var inv in oldInvitations) {
+                            Provider.of<InvitationRepository>(
+                              context,
+                              listen: false,
+                            ).addInvitation(inv);
+                          }
+
                           setState(() {});
                         },
                       ),
                     ),
                   );
-                  return confirm;
+
+                  return true;
                 }
+
                 return false;
               }
               return false;

@@ -3,14 +3,17 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
+import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 
 class AppointmentsRepositoryMemory extends ChangeNotifier
     implements AppointmentsRepository {
   final List<Appointment> _appointments = [];
+  final List<Invitation> _invitations = [];
 
   @override
   List<Appointment> get appointments => UnmodifiableListView(_appointments);
+  List<Invitation> get invitations => UnmodifiableListView(_invitations);
 
   @override
   void addAppointment(Appointment appointment) {
@@ -23,6 +26,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
       endHourDate: appointment.endHourDate,
       appointmentCreator: appointment.appointmentCreator,
       local: appointment.local,
+      invitations: [],
     );
 
     if (_appointments.any((a) => a.id == newAppointment.id)) {
@@ -36,6 +40,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
   @override
   void removeAppointment(int id) {
     _appointments.removeWhere((appointment) => appointment.id == id);
+    _invitations.removeWhere((invitation) => invitation.appointmentId == id);
     notifyListeners();
   }
 
@@ -57,5 +62,33 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
   @override
   List<Appointment> getAll() {
     return _appointments;
+  }
+
+  void addInvitation(Invitation invitation) {
+    _invitations.add(invitation);
+    notifyListeners();
+  }
+
+  List<Invitation> getInvitationsByOrganizer(String organizerUser) {
+    return _invitations
+        .where((invitation) => invitation.organizerUser == organizerUser)
+        .toList();
+  }
+
+  List<Invitation> getInvitationsByAppointmentCreator(
+    String appointmentCreator,
+  ) {
+    return _invitations
+        .where((invitation) => invitation.organizerUser == appointmentCreator)
+        .toList();
+  }
+
+  @override
+  Appointment? getAppointmentsById(int id) {
+    try {
+      return _appointments.firstWhere((appointment) => appointment.id == id);
+    } catch (e) {
+      return null;
+    }
   }
 }

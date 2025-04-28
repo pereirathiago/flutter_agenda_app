@@ -11,4 +11,5 @@ abstract class UserRepository extends ChangeNotifier {
   void editProfile(User updatedUser);
   User? getProfile(String userId);
   User? getUserByEmail(String email);
+  User? getUserByUsername(String username);
 }

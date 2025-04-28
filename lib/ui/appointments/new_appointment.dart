@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
+import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
@@ -8,22 +10,46 @@ import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
 import 'package:provider/provider.dart';
 
 class NewAppointmentView extends StatefulWidget {
-  NewAppointmentView({super.key});
+  const NewAppointmentView({super.key});
 
   @override
   State<NewAppointmentView> createState() => _NewAppointmentViewState();
 }
 
 class _NewAppointmentViewState extends State<NewAppointmentView> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController startHourController = TextEditingController();
-  final TextEditingController endHourController = TextEditingController();
-  final TextEditingController localController = TextEditingController();
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final startHourController = TextEditingController();
+  final endHourController = TextEditingController();
+  final localController = TextEditingController();
 
   bool _isReadOnly = false;
-
   Appointment? _appointment;
+  List<Invitation> _invitations = [];
+
+  bool verifyDate(BuildContext context) {
+    final title = titleController.text.trim();
+    final description = descriptionController.text.trim();
+    final local = localController.text.trim();
+    final startText = startHourController.text.trim();
+    final endText = endHourController.text.trim();
+
+    if (title.isEmpty ||
+        description.isEmpty ||
+        local.isEmpty ||
+        startText.isEmpty ||
+        endText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha todos os campos obrigatórios! 🚫🛑📋'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+    return true;
+  }
+
   DateTime? parseDateTime(String dateTimeText) {
     try {
       final parts = dateTimeText.split(' ');
@@ -80,165 +106,221 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                 ? formatDateTime(_appointment!.endHourDate)
                 : '';
         localController.text = _appointment?.local ?? '';
+        _loadInvitations();
       }
+    } else {
+      final loggedUser =
+          Provider.of<UserRepositoryMemory>(context, listen: false).loggedUser!;
+      _appointment = Appointment(
+        id: null,
+        title: '',
+        description: '',
+        status: true,
+        startHourDate: DateTime.now(),
+        endHourDate: DateTime.now().add(const Duration(hours: 1)),
+        local: '',
+        appointmentCreator: loggedUser,
+        invitations: [],
+      );
     }
   }
 
-  void pickTime(BuildContext context) {
-    showTimePicker(context: context, initialTime: TimeOfDay.now()).then((
-      value,
-    ) {
-      if (value != null) {
-        final time = value.format(context);
-        startHourController.text = time;
-      }
-    });
-  }
-
-  bool verifyDate(BuildContext context) {
-    final now = DateTime.now();
-
-    final title = titleController.text.trim();
-    final description = descriptionController.text.trim();
-    final local = localController.text.trim();
-    final startText = startHourController.text.trim();
-    final endText = endHourController.text.trim();
-
-    // 🔍 Validação dos campos obrigatórios! 🚨
-    if (title.isEmpty ||
-        description.isEmpty ||
-        local.isEmpty ||
-        startText.isEmpty ||
-        endText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Preencha todos os campos obrigatórios! 🚫🛑📋'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return false;
-    }
-
-    DateTime? startDateTime;
-    DateTime? endDateTime;
-
-    try {
-      final partsStart = startHourController.text.split(' ');
-      final datePartsStart = partsStart[0].split('/');
-      final timePartsStart = partsStart[1].split(':');
-
-      startDateTime = DateTime(
-        int.parse(datePartsStart[2]),
-        int.parse(datePartsStart[1]),
-        int.parse(datePartsStart[0]),
-        int.parse(timePartsStart[0]),
-        int.parse(timePartsStart[1]),
-      );
-
-      final partsEnd = endHourController.text.split(' ');
-      final datePartsEnd = partsEnd[0].split('/');
-      final timePartsEnd = partsEnd[1].split(':');
-
-      endDateTime = DateTime(
-        int.parse(datePartsEnd[2]),
-        int.parse(datePartsEnd[1]),
-        int.parse(datePartsEnd[0]),
-        int.parse(timePartsEnd[0]),
-        int.parse(timePartsEnd[1]),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Preencha corretamente as datas e horas! 🧨📅'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return false;
-    }
-
-    if (startDateTime.isBefore(now)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Data de início não pode ser no passado! ⏳❌'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return false;
-    }
-
-    if (endDateTime.isBefore(now)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Data de término não pode ser no passado! ⏳🚫'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return false;
-    }
-
-    if (endDateTime.isBefore(startDateTime)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Data de término não pode ser antes da data de início! 🪞⛔️',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return false;
-    }
-
-    // ✅✅ Tudo certo!! Aqui você pode salvar de verdade o compromisso 🎉📅✅
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Compromisso salvo com sucesso! 🎯📝✨'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    return true;
-  }
-
-  void save(BuildContext context) {
-    if (!verifyDate(context)) return;
-    final appointmentsRepository = Provider.of<AppointmentsRepositoryMemory>(
+  void _loadInvitations() {
+    final invitationRepository = Provider.of<InvitationRepositoryMemory>(
       context,
       listen: false,
     );
 
+    final appointmentInvitations =
+        invitationRepository.invitations
+            .where(
+              (inv) =>
+                  inv.organizerUser ==
+                      _appointment?.appointmentCreator.username &&
+                  inv.appointmentId == _appointment?.id,
+            )
+            .toList();
+
+    setState(() {
+      _invitations = appointmentInvitations;
+    });
+  }
+
+  void _addGuest() async {
     final userRepository = Provider.of<UserRepositoryMemory>(
       context,
       listen: false,
     );
+    final invitationRepository = Provider.of<InvitationRepositoryMemory>(
+      context,
+      listen: false,
+    );
+    final loggedUser = userRepository.loggedUser!; // pega o usuário logado
 
-    final appointment = Appointment(
-      title: titleController.text.trim(),
-      description: descriptionController.text.trim(),
-      local: localController.text.trim(),
-      startHourDate: parseDateTime(startHourController.text) ?? DateTime.now(),
-      endHourDate: parseDateTime(endHourController.text) ?? DateTime.now(),
-      status: true,
-      appointmentCreator: userRepository.loggedUser!,
+    final guestUsernameController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Adicionar Convidado'),
+            content: TextField(
+              controller: guestUsernameController,
+              decoration: const InputDecoration(
+                hintText: 'Username do convidado',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final guestUsername = guestUsernameController.text.trim();
+
+                  if (guestUsername.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Informe o username do convidado!'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (guestUsername == loggedUser.username) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Você não pode se convidar para o próprio compromisso! 🙅‍♂️',
+                        ),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final guestUser = userRepository.getUserByUsername(
+                    guestUsername,
+                  );
+
+                  if (guestUser == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Usuário não encontrado!'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final alreadyInvited = _invitations.any(
+                    (inv) => inv.idGuestUser == guestUsername,
+                  );
+
+                  if (alreadyInvited) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Usuário já convidado!'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final newInvitation = Invitation(
+                    id: invitationRepository.invitations.length + 1,
+                    organizerUser: _appointment!.appointmentCreator.username,
+                    idGuestUser: guestUsername,
+                    invitationStatus: 0,
+                    appointmentId: _appointment!.id ?? 0,
+                  );
+
+                  invitationRepository.addInvitation(newInvitation);
+                  _loadInvitations();
+
+                  Navigator.pop(context);
+                },
+                child: const Text('Adicionar'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  String _getInvitationStatusText(int status) {
+    switch (status) {
+      case 0:
+        return 'Pendente';
+      case 1:
+        return 'Aceito';
+      case 2:
+        return 'Recusado';
+      default:
+        return 'Desconhecido';
+    }
+  }
+
+  void save(BuildContext context) {
+    if (!verifyDate(context)) return;
+
+    final appointmentsRepository = Provider.of<AppointmentsRepositoryMemory>(
+      context,
+      listen: false,
+    );
+    final invitationRepository = Provider.of<InvitationRepositoryMemory>(
+      context,
+      listen: false,
     );
 
-    appointmentsRepository.addAppointment(appointment);
-    print(startHourController.text);
-    print(endHourController.text);
-    print('data formatada ${DateTime.tryParse(startHourController.text)}');
+    final startDateTime = parseDateTime(startHourController.text.trim());
+    final endDateTime = parseDateTime(endHourController.text.trim());
+
+    if (startDateTime == null || endDateTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data ou hora inválidas. Verifique o formato.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final newAppointment = Appointment(
+      id: appointmentsRepository.appointments.length + 1,
+      title: titleController.text.trim(),
+      description: descriptionController.text.trim(),
+      startHourDate: startDateTime,
+      endHourDate: endDateTime,
+      local: localController.text.trim(),
+      status: true,
+      invitations: [],
+      appointmentCreator: _appointment!.appointmentCreator,
+    );
+
+    // Atualizar os convidados para o ID correto
+    for (var inv in invitationRepository.invitations.where(
+      (inv) => inv.appointmentId == 0,
+    )) {
+      inv.appointmentId = newAppointment.id!;
+    }
+
+    appointmentsRepository.addAppointment(newAppointment);
+
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments;
-    // 🌟 Pegando a data passada pelo Navigator.pushNamed 🌟
     final DateTime? dataSelecionada =
         arguments != null
             ? (arguments as Map)['startHourDate'] as DateTime?
             : null;
 
-    // ✨ Se a data veio, formata e já joga no campo! ✨
     if (dataSelecionada != null && startHourController.text.isEmpty) {
-      final horaFixa = const TimeOfDay(hour: 8, minute: 0); // padrão 08:00 🕗
+      final horaFixa = const TimeOfDay(hour: 8, minute: 0);
       final dataHora = DateTime(
         dataSelecionada.year,
         dataSelecionada.month,
@@ -248,6 +330,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       );
       startHourController.text = formatDateTime(dataHora);
     }
+
     return Scaffold(
       appBar: AppBarWidget(
         title: _isReadOnly ? 'Compromisso' : 'Novo compromisso',
@@ -310,9 +393,9 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       }
                     }
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Digite a data e hora de início',
-                    suffixIcon: const Icon(Icons.calendar_today),
+                    suffixIcon: Icon(Icons.calendar_today),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -348,9 +431,9 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       }
                     }
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Digite a data e hora de término',
-                    suffixIcon: const Icon(Icons.calendar_today),
+                    suffixIcon: Icon(Icons.calendar_today),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -360,7 +443,36 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   controller: localController,
                   readOnly: _isReadOnly,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
+                if (_isReadOnly) ...[
+                  const Text(
+                    'Convidados',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_invitations.isEmpty)
+                    const Text('Nenhum convidado adicionado.')
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _invitations.length,
+                      itemBuilder: (context, index) {
+                        final invitation = _invitations[index];
+                        return ListTile(
+                          title: Text('Username: ${invitation.idGuestUser}'),
+                          subtitle: Text(
+                            'Status: ${_getInvitationStatusText(invitation.invitationStatus)}',
+                          ),
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                  AppButtonWidget(
+                    text: 'Adicionar convidado',
+                    onPressed: _addGuest,
+                  ),
+                ],
                 if (!_isReadOnly)
                   AppButtonWidget(
                     text: 'Salvar compromisso',
