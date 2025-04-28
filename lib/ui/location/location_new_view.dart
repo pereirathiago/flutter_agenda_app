@@ -129,36 +129,40 @@ class _LocationNewViewState extends State<LocationNewView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Expanded(
-                    child: AppInputWidget(
-                      label: 'Número',
-                      hintText: 'Digite o número',
-                      controller: _numberController,
-                      keyboardType: TextInputType.number,
-                      readOnly: _isReadOnly || _noNumber,
-                      validator: (value) {
-                        if (_noNumber) return null;
-                        if (value == null || value.isEmpty) {
-                          return 'Campo obrigatório';
-                        } else if (int.tryParse(value) == null) {
-                          return 'Número inválido';
-                        }
-                        return null;
-                      },
+                  if (!_isReadOnly || (_isReadOnly && !_noNumber))
+                    Expanded(
+                      child: AppInputWidget(
+                        label: 'Número',
+                        hintText: 'Digite o número',
+                        controller: _numberController,
+                        keyboardType: TextInputType.number,
+                        readOnly: _isReadOnly || _noNumber,
+                        validator: (value) {
+                          if (_noNumber) return null;
+                          if (value == null || value.isEmpty) {
+                            return 'Campo obrigatório';
+                          } else if (int.tryParse(value) == null) {
+                            return 'Número inválido';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  if (!_isReadOnly)
+                  if (!_isReadOnly) const SizedBox(width: 16),
+                  if (!_isReadOnly || (_isReadOnly && _noNumber))
                     Expanded(
                       child: CheckboxListTile(
                         title: const Text('Sem número'),
                         value: _noNumber,
-                        onChanged: (value) {
-                          setState(() {
-                            _noNumber = value ?? false;
-                            if (_noNumber) _numberController.clear();
-                          });
-                        },
+                        onChanged:
+                            _isReadOnly
+                                ? null
+                                : (value) {
+                                  setState(() {
+                                    _noNumber = value ?? false;
+                                    if (_noNumber) _numberController.clear();
+                                  });
+                                },
                       ),
                     ),
                 ],

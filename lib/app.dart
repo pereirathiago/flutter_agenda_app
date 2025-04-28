@@ -10,7 +10,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       theme: appTheme,
       title: 'Agenda',
-      // debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: appRoutes,
     );
