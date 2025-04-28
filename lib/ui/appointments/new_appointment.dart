@@ -250,16 +250,13 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   String _getInvitationStatusText(int status) {
-    switch (status) {
-      case 0:
-        return 'Pendente';
-      case 1:
-        return 'Aceito';
-      case 2:
-        return 'Recusado';
-      default:
-        return 'Desconhecido';
-    }
+    final statusMap = {
+      0: 'Pendente',
+      1: 'Aceito',
+      2: 'Recusado',
+    };
+    
+    return statusMap[status] ?? 'Desconhecido';
   }
 
   void save(BuildContext context) {
