@@ -2,26 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
 import 'package:provider/provider.dart';
 
 class NewAppointmentView extends StatefulWidget {
-  NewAppointmentView({super.key});
+  const NewAppointmentView({super.key});
 
   @override
   State<NewAppointmentView> createState() => _NewAppointmentViewState();
 }
 
 class _NewAppointmentViewState extends State<NewAppointmentView> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController startHourController = TextEditingController();
-  final TextEditingController endHourController = TextEditingController();
-  final TextEditingController localController = TextEditingController();
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final startHourController = TextEditingController();
+  final endHourController = TextEditingController();
+  final localController = TextEditingController();
 
   bool _isReadOnly = false;
   Appointment? _appointment;
@@ -82,9 +82,22 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         startHourController.text = _appointment?.startHourDate.toString() ?? '';
         endHourController.text = _appointment?.endHourDate.toString() ?? '';
         localController.text = _appointment?.local ?? '';
-
         _loadInvitations();
       }
+    } else {
+      final loggedUser =
+          Provider.of<UserRepositoryMemory>(context, listen: false).loggedUser!;
+      _appointment = Appointment(
+        id: null,
+        title: '',
+        description: '',
+        status: true,
+        startHourDate: DateTime.now(),
+        endHourDate: DateTime.now().add(const Duration(hours: 1)),
+        local: '',
+        appointmentCreator: loggedUser,
+        invitations: [],
+      );
     }
   }
 
@@ -94,9 +107,15 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       listen: false,
     );
 
-    final appointmentInvitations = invitationRepository.invitations
-        .where((inv) => inv.organizerUser == _appointment?.appointmentCreator.id)
-        .toList();
+    final appointmentInvitations =
+        invitationRepository.invitations
+            .where(
+              (inv) =>
+                  inv.organizerUser ==
+                      _appointment?.appointmentCreator.username &&
+                  inv.appointmentId == _appointment?.id,
+            )
+            .toList();
 
     setState(() {
       _invitations = appointmentInvitations;
@@ -112,42 +131,97 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       context,
       listen: false,
     );
+    final loggedUser = userRepository.loggedUser!; // pega o usuário logado
 
-    final guestUserIdController = TextEditingController();
+    final guestUsernameController = TextEditingController();
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Adicionar Convidado'),
-        content: TextField(
-          controller: guestUserIdController,
-          decoration: InputDecoration(hintText: 'ID do usuário convidado'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              final newInvitation = Invitation(
-                id: invitationRepository.invitations.length + 1,
-                organizerUser: _appointment!.appointmentCreator.id.toString(),
-                idGuestUser: guestUserIdController.text.trim(),
-                invitationStatus: 0,
-              );
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Adicionar Convidado'),
+            content: TextField(
+              controller: guestUsernameController,
+              decoration: const InputDecoration(
+                hintText: 'Username do convidado',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final guestUsername = guestUsernameController.text.trim();
 
-              invitationRepository.addInvitation(newInvitation);
-              _loadInvitations();
+                  if (guestUsername.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Informe o username do convidado!'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
 
-              Navigator.pop(context);
-            },
-            child: Text('Adicionar'),
+                  if (guestUsername == loggedUser.username) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Você não pode se convidar para o próprio compromisso! 🙅‍♂️',
+                        ),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final guestUser = userRepository.getUserByUsername(
+                    guestUsername,
+                  );
+
+                  if (guestUser == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Usuário não encontrado!'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final alreadyInvited = _invitations.any(
+                    (inv) => inv.idGuestUser == guestUsername,
+                  );
+
+                  if (alreadyInvited) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Usuário já convidado!'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final newInvitation = Invitation(
+                    id: invitationRepository.invitations.length + 1,
+                    organizerUser: _appointment!.appointmentCreator.username,
+                    idGuestUser: guestUsername,
+                    invitationStatus: 0,
+                    appointmentId: _appointment!.id ?? 0,
+                  );
+
+                  invitationRepository.addInvitation(newInvitation);
+                  _loadInvitations();
+
+                  Navigator.pop(context);
+                },
+                child: const Text('Adicionar'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -168,6 +242,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     if (!verifyDate(context)) return;
 
     final appointmentsRepository = Provider.of<AppointmentsRepositoryMemory>(
+      context,
+      listen: false,
+    );
+    final invitationRepository = Provider.of<InvitationRepositoryMemory>(
       context,
       listen: false,
     );
@@ -193,8 +271,16 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       endHourDate: endDateTime,
       local: localController.text.trim(),
       status: true,
-      appointmentCreator: Provider.of<UserRepositoryMemory>(context, listen: false).loggedUser!,
+      invitations: [],
+      appointmentCreator: _appointment!.appointmentCreator,
     );
+
+    // Atualizar os convidados para o ID correto
+    for (var inv in invitationRepository.invitations.where(
+      (inv) => inv.appointmentId == 0,
+    )) {
+      inv.appointmentId = newAppointment.id!;
+    }
 
     appointmentsRepository.addAppointment(newAppointment);
 
@@ -205,7 +291,9 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments;
     final DateTime? dataSelecionada =
-        arguments != null ? (arguments as Map)['startHourDate'] as DateTime? : null;
+        arguments != null
+            ? (arguments as Map)['startHourDate'] as DateTime?
+            : null;
 
     if (dataSelecionada != null && startHourController.text.isEmpty) {
       final horaFixa = const TimeOfDay(hour: 8, minute: 0);
@@ -277,9 +365,9 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       }
                     }
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Digite a data e hora de início',
-                    suffixIcon: const Icon(Icons.calendar_today),
+                    suffixIcon: Icon(Icons.calendar_today),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -313,9 +401,9 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       }
                     }
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Digite a data e hora de término',
-                    suffixIcon: const Icon(Icons.calendar_today),
+                    suffixIcon: Icon(Icons.calendar_today),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -326,25 +414,22 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                 ),
                 const SizedBox(height: 24),
                 if (_isReadOnly) ...[
-                  Text(
+                  const Text(
                     'Convidados',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   if (_invitations.isEmpty)
-                    Text('Nenhum convidado adicionado.')
+                    const Text('Nenhum convidado adicionado.')
                   else
                     ListView.builder(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: _invitations.length,
                       itemBuilder: (context, index) {
                         final invitation = _invitations[index];
                         return ListTile(
-                          title: Text('ID: ${invitation.idGuestUser}'),
+                          title: Text('Username: ${invitation.idGuestUser}'),
                           subtitle: Text(
                             'Status: ${_getInvitationStatusText(invitation.invitationStatus)}',
                           ),

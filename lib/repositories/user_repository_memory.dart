@@ -90,4 +90,13 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
       orElse: () => throw Exception('Usuário não encontrado.'),
     );
   }
+
+  @override
+  User? getUserByUsername(String username) {
+    try {
+      return _users.firstWhere((u) => u.username == username);
+    } catch (e) {
+      return null;
+    }
+  }
 }

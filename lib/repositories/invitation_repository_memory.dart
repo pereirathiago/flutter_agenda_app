@@ -6,12 +6,13 @@ class InvitationRepositoryMemory extends InvitationRepository {
     Invitation(
       id: 1,
       organizerUser: 'Organizador Teste',
-      idGuestUser: '1',
+      idGuestUser: 'guestuser1',
       invitationStatus: 0,
+      appointmentId: 1, 
     ),
   ];
 
-  List<Invitation> get invitations => _invitations; // 🆕 Adicionado Getter
+  List<Invitation> get invitations => _invitations; // Getter
 
   @override
   void addInvitation(Invitation invitation) {
@@ -23,6 +24,12 @@ class InvitationRepositoryMemory extends InvitationRepository {
   List<Invitation> getInvitationsByGuestId(String userId) {
     return _invitations
         .where((inv) => inv.idGuestUser == userId && inv.invitationStatus == 0)
+        .toList();
+  }
+
+  List<Invitation> getInvitationsByGuestUsername(String username) {
+    return _invitations
+        .where((inv) => inv.idGuestUser == username)
         .toList();
   }
 
@@ -42,5 +49,11 @@ class InvitationRepositoryMemory extends InvitationRepository {
       _invitations[index].invitationStatus = 2;
       notifyListeners();
     }
+  }
+
+  @override
+  void removeInvitationsByAppointmentId(int id){
+    _invitations.removeWhere((invitation) => invitation.appointmentId == id);
+    notifyListeners();
   }
 }

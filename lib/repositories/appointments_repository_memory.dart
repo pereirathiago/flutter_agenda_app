@@ -41,6 +41,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
   @override
   void removeAppointment(int id) {
     _appointments.removeWhere((appointment) => appointment.id == id);
+    _invitations.removeWhere((invitation) => invitation.appointmentId == id);
     notifyListeners();
   }
 
@@ -76,5 +77,15 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
     return _invitations
         .where((invitation) => invitation.organizerUser == appointmentCreator)
         .toList();
+  }
+
+@override
+  Appointment? getAppointmentsById(int id) {
+    try{
+    return _appointments.firstWhere(
+      (appointment) => appointment.id == id
+    ); } catch (e){
+      return null;
+    }
   }
 }

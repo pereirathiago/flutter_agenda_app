@@ -7,4 +7,5 @@ abstract class InvitationRepository extends ChangeNotifier {
   void acceptInvitation(int invitationId);
   void declineInvitation(int invitationId);
   void addInvitation(Invitation invitation); 
+  void removeInvitationsByAppointmentId(int id);
 }
