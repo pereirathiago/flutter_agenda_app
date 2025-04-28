@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
+import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
 class InvitationsScreenView extends StatelessWidget {
@@ -48,7 +49,12 @@ class InvitationsScreenView extends StatelessWidget {
     return Scaffold(
       body:
           invitations.isEmpty
-              ? const Center(child: Text('Nenhum convite encontrado.'))
+              ? const Center(
+                child: Text(
+                  'Nenhum convite encontrado.',
+                  style: TextStyle(fontSize: 18, color: AppColors.primary),
+                ),
+              )
               : ListView.builder(
                 itemCount: invitations.length,
                 itemBuilder: (context, index) {
