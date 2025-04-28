@@ -280,35 +280,52 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     if (startDateTime == null || endDateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Data ou hora inválidas. Verifique o formato.'),
+          content: Text('Data ou hora inválidas. Verifique o formato. ⏰❌'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    final newAppointment = Appointment(
-      id: appointmentsRepository.appointments.length + 1,
-      title: titleController.text.trim(),
-      description: descriptionController.text.trim(),
-      startHourDate: startDateTime,
-      endHourDate: endDateTime,
-      local: localController.text.trim(),
-      status: true,
-      invitations: [],
-      appointmentCreator: _appointment!.appointmentCreator,
-    );
+    // Atualiza o compromisso existente 😎
+    if (_appointment?.id != null) {
+      final updatedAppointment = Appointment(
+        id: _appointment!.id,
+        title: titleController.text.trim(),
+        description: descriptionController.text.trim(),
+        startHourDate: startDateTime,
+        endHourDate: endDateTime,
+        local: localController.text.trim(),
+        status: _appointment!.status,
+        invitations: _appointment!.invitations,
+        appointmentCreator: _appointment!.appointmentCreator,
+      );
 
-    // Atualizar os convidados para o ID correto
-    for (var inv in invitationRepository.invitations.where(
-      (inv) => inv.appointmentId == 0,
-    )) {
-      inv.appointmentId = newAppointment.id!;
+      appointmentsRepository.updateAppointment(updatedAppointment);
+    } else {
+      // Se for novo, adiciona normalmente ✨
+      final newAppointment = Appointment(
+        id: appointmentsRepository.appointments.length + 1,
+        title: titleController.text.trim(),
+        description: descriptionController.text.trim(),
+        startHourDate: startDateTime,
+        endHourDate: endDateTime,
+        local: localController.text.trim(),
+        status: true,
+        invitations: [],
+        appointmentCreator: _appointment!.appointmentCreator,
+      );
+
+      // Atualizar os convidados para o ID correto 👫
+      for (var inv in invitationRepository.invitations.where(
+        (inv) => inv.appointmentId == 0,
+      )) {
+        inv.appointmentId = newAppointment.id!;
+      }
+      appointmentsRepository.addAppointment(newAppointment);
     }
 
-    appointmentsRepository.addAppointment(newAppointment);
-
-    Navigator.pop(context);
+    Navigator.pop(context); // Fecha a tela depois de salvar ✨🚪
   }
 
   @override
