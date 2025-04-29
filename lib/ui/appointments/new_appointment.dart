@@ -155,7 +155,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       context,
       listen: false,
     );
-    final loggedUser = userRepository.loggedUser!; // pega o usuário logado
+    final loggedUser = userRepository.loggedUser!;
 
     final guestUsernameController = TextEditingController();
 
@@ -250,16 +250,13 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   String _getInvitationStatusText(int status) {
-    switch (status) {
-      case 0:
-        return 'Pendente';
-      case 1:
-        return 'Aceito';
-      case 2:
-        return 'Recusado';
-      default:
-        return 'Desconhecido';
-    }
+    final statusMap = {
+      0: 'Pendente',
+      1: 'Aceito',
+      2: 'Recusado',
+    };
+    
+    return statusMap[status] ?? 'Desconhecido';
   }
 
   void save(BuildContext context) {
@@ -287,7 +284,6 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       return;
     }
 
-    // Atualiza o compromisso existente 😎
     if (_appointment?.id != null) {
       final updatedAppointment = Appointment(
         id: _appointment!.id,
@@ -303,7 +299,6 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
 
       appointmentsRepository.updateAppointment(updatedAppointment);
     } else {
-      // Se for novo, adiciona normalmente ✨
       final newAppointment = Appointment(
         id: appointmentsRepository.appointments.length + 1,
         title: titleController.text.trim(),
@@ -316,7 +311,6 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         appointmentCreator: _appointment!.appointmentCreator,
       );
 
-      // Atualizar os convidados para o ID correto 👫
       for (var inv in invitationRepository.invitations.where(
         (inv) => inv.appointmentId == 0,
       )) {
@@ -325,7 +319,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       appointmentsRepository.addAppointment(newAppointment);
     }
 
-    Navigator.pop(context); // Fecha a tela depois de salvar ✨🚪
+    Navigator.pop(context);
   }
 
   @override
@@ -461,7 +455,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   readOnly: _isReadOnly,
                 ),
                 const SizedBox(height: 24),
-                if (_isReadOnly) ...[
+                if (_isReadOnly || _appointment != null) ...[
                   const Text(
                     'Convidados',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -485,10 +479,15 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       },
                     ),
                   const SizedBox(height: 16),
-                  AppButtonWidget(
-                    text: 'Adicionar convidado',
-                    onPressed: _addGuest,
-                  ),
+                  if (!_isReadOnly) ...[
+                    AppButtonWidget(
+                      text: 'Adicionar convidado',
+                      onPressed: _addGuest,
+                    ),
+                    const SizedBox(height: 8),
+                    Divider(color: Colors.grey.shade300, thickness: 1),
+                    const SizedBox(height: 8),
+                  ],
                 ],
                 if (!_isReadOnly)
                   AppButtonWidget(

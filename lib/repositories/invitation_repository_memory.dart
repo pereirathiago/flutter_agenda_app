@@ -12,7 +12,7 @@ class InvitationRepositoryMemory extends InvitationRepository {
     ),
   ];
 
-  List<Invitation> get invitations => _invitations; // Getter
+  List<Invitation> get invitations => _invitations;
 
   @override
   void addInvitation(Invitation invitation) {

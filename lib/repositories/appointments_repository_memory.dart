@@ -18,7 +18,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
   @override
   void addAppointment(Appointment appointment) {
     final newAppointment = Appointment(
-      id: Random().nextInt(10000), // Gera o ID novo aqui ✨
+      id: Random().nextInt(10000),
       title: appointment.title,
       description: appointment.description,
       status: appointment.status,
@@ -56,7 +56,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
 
     _appointments[index] = updatedAppointment;
 
-    notifyListeners(); // Atualiza todo mundo feliz 🥳🎈
+    notifyListeners();
   }
 
   @override

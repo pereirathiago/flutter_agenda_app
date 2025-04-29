@@ -2,32 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
+import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
 class InvitationsScreenView extends StatelessWidget {
   const InvitationsScreenView({super.key});
 
   Color _getBackgroundColor(int status) {
-    switch (status) {
-      case 1: // Aceito
-        return Colors.green.shade100;
-      case 2: // Recusado
-        return Colors.red.shade100;
-      default: // Pendente
-        return Colors.white;
-    }
+    final statusColors = {
+      1: Colors.green.shade100, // Aceito
+      2: Colors.red.shade100, // Recusado
+      0: Colors.white, // Pendente
+    };
+
+    return statusColors[status] ?? Colors.white;
   }
 
   String _getStatusText(int status) {
-    switch (status) {
-      case 1:
-        return 'Aceito';
-      case 2:
-        return 'Recusado';
-      case 0:
-      default:
-        return 'Pendente';
-    }
+    final statusText = {1: 'Aceito', 2: 'Recusado', 0: 'Pendente'};
+
+    return statusText[status] ?? 'Pendente';
   }
 
   @override
@@ -48,7 +42,12 @@ class InvitationsScreenView extends StatelessWidget {
     return Scaffold(
       body:
           invitations.isEmpty
-              ? const Center(child: Text('Nenhum convite encontrado.'))
+              ? const Center(
+                child: Text(
+                  'Nenhum convite encontrado.',
+                  style: TextStyle(fontSize: 18, color: AppColors.primary),
+                ),
+              )
               : ListView.builder(
                 itemCount: invitations.length,
                 itemBuilder: (context, index) {

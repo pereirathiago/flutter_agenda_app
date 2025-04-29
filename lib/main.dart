@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/app.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
