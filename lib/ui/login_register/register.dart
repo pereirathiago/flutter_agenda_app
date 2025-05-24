@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/user.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
@@ -19,7 +19,7 @@ class RegisterView extends StatelessWidget {
 
   void _registerUser(context) {
     if (!_formKey.currentState!.validate()) return;
-    final userRepository = Provider.of<UserRepositoryMemory>(
+    final userRepository = Provider.of<UserRepositorySqlite>(
       context,
       listen: false,
     );

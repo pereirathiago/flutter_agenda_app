@@ -13,10 +13,10 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
   User? get loggedUser => _loggedUser;
 
   @override
-  List<User> get users => UnmodifiableListView(_users);
+  Future<List<User>> get users async => UnmodifiableListView(_users);
 
   @override
-  void register(User user) {
+  Future<void> register(User user) async {
     if (_users.any(
       (u) => u.email == user.email || u.username == user.username,
     )) {
@@ -41,7 +41,7 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
   }
 
   @override
-  bool login(String email, String password) {
+  Future<bool> login(String email, String password) async {
     try {
       final user = _users.firstWhere(
         (u) => u.email == email && u.password == password,
@@ -56,13 +56,13 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
   }
 
   @override
-  void logout() {
+  Future<void> logout() async {
     _loggedUser = null;
     notifyListeners();
   }
 
   @override
-  void editProfile(User updatedUser) {
+  Future<void> editProfile(User updatedUser) async {
     final index = _users.indexWhere((u) => u.id == updatedUser.id);
     if (index == -1) return;
 
@@ -76,7 +76,7 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
   }
 
   @override
-  User? getProfile(String userId) {
+  Future<User?> getProfile(int userId) async {
     return _users.firstWhere(
       (u) => u.id == userId,
       orElse: () => throw Exception('Usuário não encontrado.'),
@@ -84,7 +84,7 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
   }
 
   @override
-  User? getUserByEmail(String email) {
+  Future<User?> getUserByEmail(String email) async {
     return _users.firstWhere(
       (u) => u.email == email,
       orElse: () => throw Exception('Usuário não encontrado.'),
@@ -92,7 +92,7 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
   }
 
   @override
-  User? getUserByUsername(String username) {
+  Future<User?> getUserByUsername(String username) async {
     try {
       return _users.firstWhere((u) => u.username == username);
     } catch (e) {

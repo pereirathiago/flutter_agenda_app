@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/user_profile/widget/info_card_profile_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
@@ -10,7 +10,7 @@ class UserProfileView extends StatelessWidget {
   const UserProfileView({super.key});
 
   void _logout(BuildContext context) {
-    final userRepository = Provider.of<UserRepositoryMemory>(
+    final userRepository = Provider.of<UserRepositorySqlite>(
       context,
       listen: false,
     );
@@ -22,7 +22,7 @@ class UserProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userRepository = context.watch<UserRepositoryMemory>();
+    final userRepository = context.watch<UserRepositorySqlite>();
     final user = userRepository.loggedUser;
 
     if (user == null) {

@@ -28,11 +28,11 @@ class DB {
   }
 
   String get _user => '''
-    CREATE TABLE user(
+    CREATE TABLE users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL,
+      username TEXT NOT NULL UNIQUE,
       fullname TEXT NOT NULL,
-      email TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
       birthdate TEXT,
       gender TEXT,
@@ -41,7 +41,7 @@ class DB {
   ''';
 
   String get _location => '''
-    CREATE TABLE location(
+    CREATE TABLE locations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       zip_code TEXT NOT NULL,
       address TEXT NOT NULL,
@@ -56,29 +56,29 @@ class DB {
   ''';
 
   String get _appointment => '''
-    CREATE TABLE appointment(
+    CREATE TABLE appointments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       description TEXT NOT NULL,
       status INTEGER NOT NULL DEFAULT 1,
       start_hour_date TEXT NOT NULL,
       end_hour_date TEXT NOT NULL,
-      appointment_creator INTEGER NOT NULL,
+      appointment_creator_id INTEGER NOT NULL,
       location_id INTEGER NOT NULL,
       FOREIGN KEY (location_id) REFERENCES location(id) ON DELETE RESTRICT,
-      FOREIGN KEY (appointment_creator) REFERENCES user(id) ON DELETE CASCADE
+      FOREIGN KEY (appointment_creator_id) REFERENCES user(id) ON DELETE CASCADE
     )
   ''';
 
   String get _invitation => '''
-    CREATE TABLE invitation(
+    CREATE TABLE invitations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       organizer_user_id INTEGER NOT NULL,
       guest_user_id INTEGER NOT NULL,
       invitation_status INTEGER NOT NULL DEFAULT 0,
       appointment_id INTEGER NOT NULL,
-      FOREIGN KEY (organizer_user) REFERENCES user(id) ON DELETE CASCADE,
-      FOREIGN KEY (id_guest_user) REFERENCES user(id) ON DELETE CASCADE,
+      FOREIGN KEY (organizer_user_id) REFERENCES user(id) ON DELETE CASCADE,
+      FOREIGN KEY (guest_user_id) REFERENCES user(id) ON DELETE CASCADE,
       FOREIGN KEY (appointment_id) REFERENCES appointment(id) ON DELETE CASCADE
     )
   ''';
