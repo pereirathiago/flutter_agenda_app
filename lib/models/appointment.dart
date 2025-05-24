@@ -9,7 +9,7 @@ class Appointment {
   final DateTime startHourDate;
   final DateTime endHourDate;
   final User appointmentCreator;
-  final String local;
+  final String local; //aqui talvez tenha que ser um objeto Location
   final List<Invitation> invitations;
 
   Appointment({

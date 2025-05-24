@@ -77,7 +77,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       listen: false,
     );
     final user = User(
-      id: userRepository.loggedUser?.id ?? '',
+      id: userRepository.loggedUser?.id ?? 0,
       fullName: _fullNameController.text,
       username: _usernameController.text,
       email: _emailController.text,

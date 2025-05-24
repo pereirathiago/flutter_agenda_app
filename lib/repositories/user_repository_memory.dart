@@ -26,7 +26,7 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
     }
 
     final newUser = User(
-      id: Random().nextInt(10000).toString(),
+      id: Random().nextInt(10000),
       fullName: user.fullName,
       username: user.username,
       email: user.email,
