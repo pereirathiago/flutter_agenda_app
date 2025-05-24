@@ -36,8 +36,7 @@ class LocationRepositoryMemory extends ChangeNotifier
     }
 
     return _locations.where((location) {
-      return location.address?.toLowerCase().contains(filter.toLowerCase()) ??
-          false;
+      return location.address.toLowerCase().contains(filter.toLowerCase());
     }).toList();
   }
 
