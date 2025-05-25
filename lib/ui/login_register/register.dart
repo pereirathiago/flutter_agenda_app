@@ -17,7 +17,7 @@ class RegisterView extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  void _registerUser(context) {
+  Future<void> _registerUser(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
     final userRepository = Provider.of<UserRepositorySqlite>(
       context,
@@ -32,13 +32,28 @@ class RegisterView extends StatelessWidget {
         password: passwordController.text,
       );
 
-      userRepository.register(user);
+      await userRepository.register(user);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Usuário cadastrado com sucesso! Por favor, faça o login.',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
 
-      Navigator.pushNamed(context, '/login');
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

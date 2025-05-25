@@ -51,7 +51,8 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
           'Usuário já cadastrado com esse e-mail ou nome de usuário.',
         );
       }
-      throw Exception('Erro ao cadastrar usuário: ${e.toString()}');
+
+      throw Exception('Erro ao cadastrar usuário');
     }
   }
 
@@ -74,7 +75,7 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
 
       return false;
     } catch (e) {
-      throw Exception('Erro ao fazer login: ${e.toString()}');
+      throw Exception('Erro ao fazer login');
     }
   }
 
@@ -91,6 +92,9 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
   @override
   Future<void> editProfile(User updatedUser) async {
     final db = await _database;
+    if (updatedUser.id == null) {
+      throw Exception('ID do usuário é inválido.');
+    }
 
     Map<String, dynamic> userMap = updatedUser.toJson();
 
@@ -100,6 +104,7 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
         userMap,
         where: 'id = ?',
         whereArgs: [updatedUser.id],
+        conflictAlgorithm: ConflictAlgorithm.fail,
       );
 
       if (count == 0) {
@@ -111,8 +116,18 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
       }
 
       notifyListeners();
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) {
+        throw Exception(
+          'E-mail ou nome de usuário já está em uso por outra conta.',
+        );
+      } else {
+        throw Exception(
+          'Ocorreu um problema com o banco de dados ao atualizar o perfil.',
+        );
+      }
     } catch (e) {
-      throw Exception('Erro ao atualizar usuário: ${e.toString()}');
+      throw Exception('Ocorreu um erro inesperado.');
     }
   }
 

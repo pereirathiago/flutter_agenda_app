@@ -21,21 +21,40 @@ class LoginView extends StatelessWidget {
       listen: false,
     );
 
-    bool userLogged = await userRepository.login(
-      emailController.text,
-      passwordController.text,
-    );
-
-    if (!userLogged) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('E-mail ou senha inválidos.'),
-          backgroundColor: Colors.red,
-        ),
+    try {
+      bool userLogged = await userRepository.login(
+        emailController.text,
+        passwordController.text,
       );
-      return;
+
+      if (userLogged) {
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/schedule',
+            (route) => false,
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('E-mail ou senha inválidos.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-    Navigator.pushNamedAndRemoveUntil(context, '/schedule', (route) => false);
   }
 
   @override

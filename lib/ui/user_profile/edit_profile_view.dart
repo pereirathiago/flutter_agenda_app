@@ -70,9 +70,13 @@ class _EditProfileViewState extends State<EditProfileView> {
     }
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    final userRepository = Provider.of<UserRepositorySqlite>(context, listen: false);
+    final userRepository = Provider.of<UserRepositorySqlite>(
+      context,
+      listen: false,
+    );
+
     final user = User(
       id: userRepository.loggedUser?.id ?? 0,
       fullName: _fullNameController.text,
@@ -83,14 +87,41 @@ class _EditProfileViewState extends State<EditProfileView> {
       gender: _selectedGender,
     );
 
-    userRepository.editProfile(user);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Perfil atualizado com sucesso!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    Navigator.pop(context);
+    if (user.id == 0) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Erro: Usuário não identificado para salvar o perfil.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      await userRepository.editProfile(user);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Perfil atualizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -226,7 +257,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               const SizedBox(height: 32),
               AppButtonWidget(
                 text: 'Salvar alterações',
-                onPressed: _saveProfile,
+                onPressed: () => _saveProfile(context),
               ),
               const SizedBox(height: 16),
               AppTextButtonWidget(

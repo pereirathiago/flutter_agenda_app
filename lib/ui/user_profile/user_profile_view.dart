@@ -10,14 +10,27 @@ class UserProfileView extends StatelessWidget {
   const UserProfileView({super.key});
 
   void _logout(BuildContext context) {
-    final userRepository = Provider.of<UserRepositorySqlite>(
-      context,
-      listen: false,
-    );
+    try {
+      final userRepository = Provider.of<UserRepositorySqlite>(
+        context,
+        listen: false,
+      );
 
-    userRepository.logout();
+      userRepository.logout();
 
-    Navigator.pushNamed(context, '/login');
+      if (context.mounted) {
+        Navigator.pushNamed(context, '/login');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
