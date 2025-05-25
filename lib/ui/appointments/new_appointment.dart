@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
+import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
@@ -25,6 +27,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   final startHourController = TextEditingController();
   final endHourController = TextEditingController();
   final localController = TextEditingController();
+  int? _selectedLocationId; // 🔹 ID do local selecionado
+  List<Location> _userLocations = []; // 🔹 Locais do usuário logado
+  final LocationRepositorySqlite _locationRepository =
+      LocationRepositorySqlite(); // 🔹 Instância do repositório
 
   bool _isReadOnly = false;
   Appointment? _appointment;
@@ -33,13 +39,13 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   bool verifyDate(BuildContext context) {
     final title = titleController.text.trim();
     final description = descriptionController.text.trim();
-    final local = localController.text.trim();
+    final locationValid = _selectedLocationId != null;
     final startText = startHourController.text.trim();
     final endText = endHourController.text.trim();
 
-    if (title.isEmpty ||
+    if (!locationValid ||
+        title.isEmpty ||
         description.isEmpty ||
-        local.isEmpty ||
         startText.isEmpty ||
         endText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,7 +98,11 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     final arguments = ModalRoute.of(context)?.settings.arguments;
+    final loggedUser =
+        Provider.of<UserRepository>(context, listen: false).loggedUser!;
+
     if (arguments != null && arguments is Map) {
       _appointment = arguments['appointment'] as Appointment?;
       _isReadOnly = arguments['readonly'] == true;
@@ -108,12 +118,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
             _appointment?.endHourDate != null
                 ? formatDateTime(_appointment!.endHourDate)
                 : '';
-        localController.text = _appointment?.locationId?.toString() ?? '';
+        _selectedLocationId = _appointment?.locationId;
         _loadInvitations();
       }
     } else {
-      final loggedUser =
-          Provider.of<UserRepository>(context, listen: false).loggedUser!;
       _appointment = Appointment(
         id: null,
         title: '',
@@ -121,11 +129,19 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         status: true,
         startHourDate: DateTime.now(),
         endHourDate: DateTime.now().add(const Duration(hours: 1)),
-        locationId: 1,
+        locationId: null,
         appointmentCreatorId: loggedUser.id,
-        // invitations: [],
       );
     }
+
+    _loadUserLocations(loggedUser.id!); // 🆕 carrega os locais do usuário
+  }
+
+  Future<void> _loadUserLocations(int userId) async {
+    final locations = await _locationRepository.getAll(userId: userId);
+    setState(() {
+      _userLocations = locations;
+    });
   }
 
   Future<void> _loadInvitations() async {
@@ -147,10 +163,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   void _addGuest() async {
-    final userRepository = Provider.of<UserRepository>(
-      context,
-      listen: false,
-    );
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
     final invitationRepository = Provider.of<InvitationRepositorySqlite>(
       context,
       listen: false,
@@ -291,7 +304,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           startHourDate: startDateTime,
           endHourDate: endDateTime,
           appointmentCreatorId: _appointment!.appointmentCreatorId,
-          locationId: _appointment!.locationId,
+          locationId: int.tryParse(localController.text.trim()) ?? 1,
         );
 
         await appointmentsRepository.updateAppointment(updatedAppointment);
@@ -467,12 +480,34 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                AppInputWidget(
-                  label: 'Local',
-                  hintText: 'Digite o local do evento',
-                  controller: localController,
-                  readOnly: _isReadOnly,
+                const SizedBox(height: 16),
+                Text('Local'),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  value: _selectedLocationId,
+                  items:
+                      _userLocations.map((location) {
+                        return DropdownMenuItem<int>(
+                          value: location.id,
+                          child: Text(
+                            '${location.address}, ${location.number} - ${location.city}',
+                          ),
+                        );
+                      }).toList(),
+                  onChanged:
+                      _isReadOnly
+                          ? null
+                          : (int? value) {
+                            setState(() {
+                              _selectedLocationId = value;
+                            });
+                          },
+                  decoration: const InputDecoration(
+                    hintText: 'Selecione o local do evento',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
+
                 const SizedBox(height: 24),
                 if (_isReadOnly || _appointment != null) ...[
                   const Text(
