@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/location.dart';
-import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/location_repository.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
@@ -50,7 +50,7 @@ class _LocationNewViewState extends State<LocationNewView> {
   void _saveLocation() {
     if (!_formKey.currentState!.validate()) return;
 
-    final locationRepository = Provider.of<LocationRepositoryMemory>(
+    final locationRepository = Provider.of<LocationRepository>(
       context,
       listen: false,
     );

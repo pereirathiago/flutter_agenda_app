@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/location_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:provider/provider.dart';
@@ -14,16 +14,23 @@ class LocationListView extends StatefulWidget {
 class _LocationListViewState extends State<LocationListView> {
   @override
   Widget build(BuildContext context) {
-    final locationRepository = Provider.of<LocationRepositoryMemory>(
+    final locationRepository = Provider.of<LocationRepository>(
       context,
       listen: true,
     );
-    final locations = locationRepository.getAll('');
 
     return Scaffold(
       appBar: const AppBarWidget(title: 'Meus Locais'),
-      body:
-          locations.isEmpty
+      body: FutureBuilder(
+        future: locationRepository.getAll(''),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final locations = snapshot.data ?? [];
+
+          return locations.isEmpty
               ? const Center(
                 child: Text(
                   'Nenhum local cadastrado.',
@@ -83,7 +90,7 @@ class _LocationListViewState extends State<LocationListView> {
                                 ],
                               ),
                         );
-                        if (confirm == true) {
+                        if (confirm == true && context.mounted) {
                           final messenger = ScaffoldMessenger.of(context);
                           locationRepository.remove(location.id!);
                           setState(() {});
@@ -113,11 +120,11 @@ class _LocationListViewState extends State<LocationListView> {
                         color: AppColors.primary,
                       ),
                       title: Text(
-                        location.address ?? 'Endereço desconhecido',
+                        location.address,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        '${location.number?.isEmpty == true ? 'S/N' : location.number} - ${location.city ?? 'Cidade desconhecida'}',
+                        '${location.number.isEmpty == true ? 'S/N' : location.number} - ${location.city}',
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
@@ -130,7 +137,9 @@ class _LocationListViewState extends State<LocationListView> {
                     ),
                   );
                 },
-              ),
+              );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/new-location');

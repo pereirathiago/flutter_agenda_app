@@ -13,7 +13,7 @@ class LocationRepositoryMemory extends ChangeNotifier
   List<Location> get locations => UnmodifiableListView(_locations);
 
   @override
-  void add(Location location) {
+  Future<void> add(Location location) async {
     final newLocation = Location(
       id: Random().nextInt(10000),
       zipCode: location.zipCode,
@@ -30,7 +30,7 @@ class LocationRepositoryMemory extends ChangeNotifier
   }
 
   @override
-  List<Location> getAll(String? filter) {
+  Future<List<Location>> getAll(String? filter) async {
     if (filter == null || filter.isEmpty) {
       return _locations;
     }
@@ -41,18 +41,18 @@ class LocationRepositoryMemory extends ChangeNotifier
   }
 
   @override
-  Location getById(int id) {
+  Future<Location> getById(int id) async {
     return _locations.firstWhere((location) => location.id == id);
   }
 
   @override
-  void remove(int id) {
+  Future<void> remove(int id) async {
     _locations.removeWhere((location) => location.id == id);
     notifyListeners();
   }
 
   @override
-  void update(Location appointment) {
+  Future<void> update(Location appointment) async {
     final index = _locations.indexWhere(
       (location) => location.id == appointment.id,
     );
