@@ -4,12 +4,31 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
+import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 
 class AppointmentsRepositoryMemory extends ChangeNotifier
     implements AppointmentsRepository {
-  final List<Appointment> _appointments = [];
+  final List<Appointment> _appointments = [
+    Appointment(
+      id: 1,
+      title: 'Reunião de equipe',
+      description: 'Discutir os objetivos do projeto',
+      status: true,
+      startHourDate: DateTime.now().add(Duration(days: 1, hours: 2)),
+      endHourDate: DateTime.now().add(Duration(days: 1, hours: 3)),
+      appointmentCreator: User(
+        id: 1,
+        fullName: 'João Silva',
+        username: 'joao.silva',
+        email: 'a@a.com',
+        password: '123456'),
+      local: 'Sala de reuniões 1',
+      invitations: [],
+    ),
+  ];
   final List<Invitation> _invitations = [];
+  
 
   @override
   List<Appointment> get appointments => UnmodifiableListView(_appointments);
@@ -71,7 +90,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
 
   List<Invitation> getInvitationsByOrganizer(String organizerUser) {
     return _invitations
-        .where((invitation) => invitation.organizerUser == organizerUser)
+        .where((invitation) => invitation.idOrganizerUser == organizerUser)
         .toList();
   }
 
@@ -79,7 +98,7 @@ class AppointmentsRepositoryMemory extends ChangeNotifier
     String appointmentCreator,
   ) {
     return _invitations
-        .where((invitation) => invitation.organizerUser == appointmentCreator)
+        .where((invitation) => invitation.idOrganizerUser == appointmentCreator)
         .toList();
   }
 

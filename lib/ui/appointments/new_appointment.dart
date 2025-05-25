@@ -3,6 +3,7 @@ import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
@@ -125,21 +126,18 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     }
   }
 
-  void _loadInvitations() {
-    final invitationRepository = Provider.of<InvitationRepositoryMemory>(
+  Future<void> _loadInvitations() async {
+    final invitationRepository = Provider.of<InvitationRepositorySqlite>(
       context,
       listen: false,
     );
+    if (_appointment == null) return;
 
-    final appointmentInvitations =
-        invitationRepository.invitations
-            .where(
-              (inv) =>
-                  inv.organizerUser ==
-                      _appointment?.appointmentCreator.username &&
-                  inv.appointmentId == _appointment?.id,
-            )
-            .toList();
+    final appointmentInvitations = await invitationRepository
+        .getInvitationsByAppointmentAndOrganizer(
+          _appointment!.id ?? 0,
+          _appointment!.appointmentCreator!.id!,
+        );
 
     setState(() {
       _invitations = appointmentInvitations;
@@ -151,7 +149,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       context,
       listen: false,
     );
-    final invitationRepository = Provider.of<InvitationRepositoryMemory>(
+    final invitationRepository = Provider.of<InvitationRepositorySqlite>(
       context,
       listen: false,
     );
@@ -176,7 +174,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                 child: const Text('Cancelar'),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   final guestUsername = guestUsernameController.text.trim();
 
                   if (guestUsername.isEmpty) {
@@ -230,15 +228,15 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   }
 
                   final newInvitation = Invitation(
-                    id: invitationRepository.invitations.length + 1,
-                    organizerUser: _appointment!.appointmentCreator.username,
-                    idGuestUser: guestUsername,
+                    id: null, // ID será gerado pelo SQLite
+                    idOrganizerUser: _appointment!.appointmentCreator!.id!,
+                    idGuestUser: 1,
                     invitationStatus: 0,
                     appointmentId: _appointment!.id ?? 0,
                   );
 
-                  invitationRepository.addInvitation(newInvitation);
-                  _loadInvitations();
+                  await invitationRepository.addInvitation(newInvitation);
+                  await _loadInvitations(); // Atualiza lista após inserir
 
                   Navigator.pop(context);
                 },
@@ -255,14 +253,14 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     return statusMap[status] ?? 'Desconhecido';
   }
 
-  void save(BuildContext context) {
+  Future<void> save(BuildContext context) async {
     if (!verifyDate(context)) return;
 
     final appointmentsRepository = Provider.of<AppointmentsRepositoryMemory>(
       context,
       listen: false,
     );
-    final invitationRepository = Provider.of<InvitationRepositoryMemory>(
+    final invitationRepository = Provider.of<InvitationRepositorySqlite>(
       context,
       listen: false,
     );
@@ -307,194 +305,204 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         appointmentCreator: _appointment!.appointmentCreator,
       );
 
-      for (var inv in invitationRepository.invitations.where(
-        (inv) => inv.appointmentId == 0,
-      )) {
-        inv.appointmentId = newAppointment.id!;
+      for (var inv in await invitationRepository
+          .getInvitationsByAppointmentAndOrganizer(
+            0,
+            _appointment!.appointmentCreator!.id!,
+          )) {
+        final updatedInvitation = Invitation(
+          id: inv.id,
+          idOrganizerUser: 1,
+          idGuestUser: inv.idGuestUser,
+          invitationStatus: inv.invitationStatus,
+          appointmentId: newAppointment.id!,
+        );
+        await invitationRepository.updateInvitation(updatedInvitation);
       }
-      appointmentsRepository.addAppointment(newAppointment);
-    }
 
-    Navigator.pop(context);
-  }
+      Navigator.pop(context);
+    } }
 
-  @override
-  Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)?.settings.arguments;
-    final DateTime? dataSelecionada =
-        arguments != null
-            ? (arguments as Map)['startHourDate'] as DateTime?
-            : null;
+    @override
+    Widget build(BuildContext context) {
+      final arguments = ModalRoute.of(context)?.settings.arguments;
+      final DateTime? dataSelecionada =
+          arguments != null
+              ? (arguments as Map)['startHourDate'] as DateTime?
+              : null;
 
-    if (dataSelecionada != null && startHourController.text.isEmpty) {
-      final horaFixa = const TimeOfDay(hour: 8, minute: 0);
-      final dataHora = DateTime(
-        dataSelecionada.year,
-        dataSelecionada.month,
-        dataSelecionada.day,
-        horaFixa.hour,
-        horaFixa.minute,
-      );
-      startHourController.text = formatDateTime(dataHora);
-    }
+      if (dataSelecionada != null && startHourController.text.isEmpty) {
+        final horaFixa = const TimeOfDay(hour: 8, minute: 0);
+        final dataHora = DateTime(
+          dataSelecionada.year,
+          dataSelecionada.month,
+          dataSelecionada.day,
+          horaFixa.hour,
+          horaFixa.minute,
+        );
+        startHourController.text = formatDateTime(dataHora);
+      }
 
-    return Scaffold(
-      appBar: AppBarWidget(
-        title: _isReadOnly ? 'Compromisso' : 'Novo compromisso',
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppInputWidget(
-                  label: 'Título',
-                  hintText: 'Digite o nome do evento',
-                  controller: titleController,
-                  readOnly: _isReadOnly,
-                ),
-                const SizedBox(height: 16),
-                AppInputWidget(
-                  label: 'Descrição',
-                  hintText: 'Digite a descrição do evento',
-                  controller: descriptionController,
-                  readOnly: _isReadOnly,
-                ),
-                const SizedBox(height: 16),
-                Text('Data e hora de início'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: startHourController,
-                  readOnly: true,
-                  onTap: () async {
-                    if (_isReadOnly) return;
-                    final dateStart = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
-                    if (dateStart != null) {
-                      final timeStart = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (timeStart != null) {
-                        final dateTimeStart = DateTime(
-                          dateStart.year,
-                          dateStart.month,
-                          dateStart.day,
-                          timeStart.hour,
-                          timeStart.minute,
-                        );
-                        startHourController.text =
-                            '${dateTimeStart.day}/${dateTimeStart.month}/${dateTimeStart.year} ${timeStart.format(context)}';
-                      }
-                    }
-                  },
-                  decoration: const InputDecoration(
-                    hintText: 'Digite a data e hora de início',
-                    suffixIcon: Icon(Icons.calendar_today),
+      return Scaffold(
+        appBar: AppBarWidget(
+          title: _isReadOnly ? 'Compromisso' : 'Novo compromisso',
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppInputWidget(
+                    label: 'Título',
+                    hintText: 'Digite o nome do evento',
+                    controller: titleController,
+                    readOnly: _isReadOnly,
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text('Data e hora de término'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: endHourController,
-                  readOnly: true,
-
-                  onTap: () async {
-                    if (_isReadOnly) return;
-                    final dateEnd = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
-                    if (dateEnd != null) {
-                      final timeEnd = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (timeEnd != null) {
-                        final dateTimeEnd = DateTime(
-                          dateEnd.year,
-                          dateEnd.month,
-                          dateEnd.day,
-                          timeEnd.hour,
-                          timeEnd.minute,
-                        );
-                        endHourController.text =
-                            '${dateTimeEnd.day}/${dateTimeEnd.month}/${dateTimeEnd.year} ${timeEnd.format(context)}';
-                      }
-                    }
-                  },
-                  decoration: const InputDecoration(
-                    hintText: 'Digite a data e hora de término',
-                    suffixIcon: Icon(Icons.calendar_today),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                AppInputWidget(
-                  label: 'Local',
-                  hintText: 'Digite o local do evento',
-                  controller: localController,
-                  readOnly: _isReadOnly,
-                ),
-                const SizedBox(height: 24),
-                if (_isReadOnly || _appointment != null) ...[
-                  const Text(
-                    'Convidados',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_invitations.isEmpty)
-                    const Text('Nenhum convidado adicionado.')
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _invitations.length,
-                      itemBuilder: (context, index) {
-                        final invitation = _invitations[index];
-                        return ListTile(
-                          title: Text('Username: ${invitation.idGuestUser}'),
-                          subtitle: Text(
-                            'Status: ${_getInvitationStatusText(invitation.invitationStatus)}',
-                          ),
-                        );
-                      },
-                    ),
                   const SizedBox(height: 16),
-                  if (!_isReadOnly) ...[
-                    AppButtonWidget(
-                      text: 'Adicionar convidado',
-                      onPressed: _addGuest,
+                  AppInputWidget(
+                    label: 'Descrição',
+                    hintText: 'Digite a descrição do evento',
+                    controller: descriptionController,
+                    readOnly: _isReadOnly,
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Data e hora de início'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: startHourController,
+                    readOnly: true,
+                    onTap: () async {
+                      if (_isReadOnly) return;
+                      final dateStart = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (dateStart != null) {
+                        final timeStart = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (timeStart != null) {
+                          final dateTimeStart = DateTime(
+                            dateStart.year,
+                            dateStart.month,
+                            dateStart.day,
+                            timeStart.hour,
+                            timeStart.minute,
+                          );
+                          startHourController.text =
+                              '${dateTimeStart.day}/${dateTimeStart.month}/${dateTimeStart.year} ${timeStart.format(context)}';
+                        }
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Digite a data e hora de início',
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Data e hora de término'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: endHourController,
+                    readOnly: true,
+
+                    onTap: () async {
+                      if (_isReadOnly) return;
+                      final dateEnd = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (dateEnd != null) {
+                        final timeEnd = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (timeEnd != null) {
+                          final dateTimeEnd = DateTime(
+                            dateEnd.year,
+                            dateEnd.month,
+                            dateEnd.day,
+                            timeEnd.hour,
+                            timeEnd.minute,
+                          );
+                          endHourController.text =
+                              '${dateTimeEnd.day}/${dateTimeEnd.month}/${dateTimeEnd.year} ${timeEnd.format(context)}';
+                        }
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Digite a data e hora de término',
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AppInputWidget(
+                    label: 'Local',
+                    hintText: 'Digite o local do evento',
+                    controller: localController,
+                    readOnly: _isReadOnly,
+                  ),
+                  const SizedBox(height: 24),
+                  if (_isReadOnly || _appointment != null) ...[
+                    const Text(
+                      'Convidados',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    Divider(color: Colors.grey.shade300, thickness: 1),
-                    const SizedBox(height: 8),
+                    if (_invitations.isEmpty)
+                      const Text('Nenhum convidado adicionado.')
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _invitations.length,
+                        itemBuilder: (context, index) {
+                          final invitation = _invitations[index];
+                          return ListTile(
+                            title: Text('Username: ${invitation.idGuestUser}'),
+                            subtitle: Text(
+                              'Status: ${_getInvitationStatusText(invitation.invitationStatus)}',
+                            ),
+                          );
+                        },
+                      ),
+                    const SizedBox(height: 16),
+                    if (!_isReadOnly) ...[
+                      AppButtonWidget(
+                        text: 'Adicionar convidado',
+                        onPressed: _addGuest,
+                      ),
+                      const SizedBox(height: 8),
+                      Divider(color: Colors.grey.shade300, thickness: 1),
+                      const SizedBox(height: 8),
+                    ],
                   ],
+                  if (!_isReadOnly)
+                    AppButtonWidget(
+                      text: 'Salvar compromisso',
+                      onPressed: () => save(context),
+                    ),
                 ],
-                if (!_isReadOnly)
-                  AppButtonWidget(
-                    text: 'Salvar compromisso',
-                    onPressed: () => save(context),
-                  ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
-}

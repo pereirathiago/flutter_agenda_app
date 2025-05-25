@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
 
+
 abstract class InvitationRepository extends ChangeNotifier {
-  List<Invitation> getInvitationsByGuestId(String guestId);
+  Future<List<Invitation>> getInvitationsByGuestId(int guestId);
   
-  void acceptInvitation(int invitationId);
-  void declineInvitation(int invitationId);
-  void addInvitation(Invitation invitation); 
-  void removeInvitationsByAppointmentId(int id);
+  Future<void> acceptInvitation(int invitationId);
+  Future<void> declineInvitation(int invitationId);
+  Future<void> addInvitation(Invitation invitation); 
+  Future<void> removeInvitationsByAppointmentId(int id);
 }
