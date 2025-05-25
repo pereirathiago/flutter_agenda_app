@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/user.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
@@ -54,7 +54,7 @@ class _EditProfileViewState extends State<EditProfileView> {
   void initState() {
     super.initState();
     final user =
-        Provider.of<UserRepositorySqlite>(context, listen: false).loggedUser;
+        Provider.of<UserRepository>(context, listen: false).loggedUser;
 
     if (user != null) {
       _fullNameController.text = user.fullName;
@@ -72,7 +72,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Future<void> _saveProfile(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    final userRepository = Provider.of<UserRepositorySqlite>(
+    final userRepository = Provider.of<UserRepository>(
       context,
       listen: false,
     );

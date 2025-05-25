@@ -3,7 +3,7 @@ import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
@@ -110,7 +110,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       }
     } else {
       final loggedUser =
-          Provider.of<UserRepositorySqlite>(context, listen: false).loggedUser!;
+          Provider.of<UserRepository>(context, listen: false).loggedUser!;
       _appointment = Appointment(
         id: null,
         title: '',
@@ -147,7 +147,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   void _addGuest() async {
-    final userRepository = Provider.of<UserRepositorySqlite>(
+    final userRepository = Provider.of<UserRepository>(
       context,
       listen: false,
     );
