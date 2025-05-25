@@ -34,7 +34,8 @@ class _ListScheduleViewState extends State<ListScheduleView> {
 
   Future<List<Appointment>> _fetchAppointments() async {
     final repo = Provider.of<AppointmentsRepositorySqlite>(context, listen: false);
-    return await repo.getAll(); // 💾📋✅
+    print(repo.getAll());
+    return await repo.getAll();
   }
 
   Future<void> _refresh() async {

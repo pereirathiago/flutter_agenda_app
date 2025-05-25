@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
+import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
@@ -22,6 +23,23 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   final startHourController = TextEditingController();
   final endHourController = TextEditingController();
   final localController = TextEditingController();
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
 
   bool _isReadOnly = false;
   Appointment? _appointment;
@@ -138,6 +156,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           _appointment!.appointmentCreatorId!,
         );
 
+    print(_appointment!.id);
+
+    final guestUserIds =
+        appointmentInvitations.map((inv) => inv.idGuestUser).toSet().toList();
     setState(() {
       _invitations = appointmentInvitations;
     });
@@ -177,65 +199,53 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   final guestUsername = guestUsernameController.text.trim();
 
                   if (guestUsername.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Informe o username do convidado!'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    _showError('Informe o username do convidado!');
                     return;
                   }
 
                   if (guestUsername == loggedUser.username) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Você não pode se convidar para o próprio compromisso! 🙅‍♂️',
-                        ),
-                        backgroundColor: Colors.redAccent,
-                      ),
+                    _showError(
+                      'Você não pode se convidar para o próprio compromisso! 🙅‍♂️',
                     );
                     return;
                   }
 
-                  final guestUser = userRepository.getUserByUsername(
-                    guestUsername,
-                  );
+                  User? guestUser;
+                  try {
+                    guestUser = await userRepository.getUserByUsername(
+                      guestUsername,
+                    );
+                  } catch (_) {
+                    _showError('Usuário não encontrado! ❌');
+                    return;
+                  }
 
                   if (guestUser == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Usuário não encontrado!'),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
+                    _showError('Usuário não encontrado! ❌');
                     return;
                   }
 
                   final alreadyInvited = _invitations.any(
-                    (inv) => inv.idGuestUser == guestUsername,
+                    (inv) => inv.idGuestUser == guestUser!.id,
                   );
 
                   if (alreadyInvited) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Usuário já convidado!'),
-                        backgroundColor: Colors.redAccent,
-                      ),
+                    _showError(
+                      'Este usuário já foi convidado para este compromisso! 👥',
                     );
                     return;
                   }
 
                   final newInvitation = Invitation(
-                    id: null, // ID será gerado pelo SQLite
+                    id: null,
                     idOrganizerUser: _appointment!.appointmentCreatorId!,
-                    idGuestUser: 1,
+                    idGuestUser: guestUser.id,
                     invitationStatus: 0,
                     appointmentId: _appointment!.id ?? 0,
                   );
 
                   await invitationRepository.addInvitation(newInvitation);
-                  await _loadInvitations(); // Atualiza lista após inserir
+                  await _loadInvitations();
 
                   Navigator.pop(context);
                 },
@@ -486,11 +496,31 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       itemCount: _invitations.length,
                       itemBuilder: (context, index) {
                         final invitation = _invitations[index];
-                        return ListTile(
-                          title: Text('Username: ${invitation.idGuestUser}'),
-                          subtitle: Text(
-                            'Status: ${_getInvitationStatusText(invitation.invitationStatus)}',
-                          ),
+                        final guestId = invitation.idGuestUser;
+                        print('Guest ID: ${invitation.idGuestUser}');
+
+                        if (guestId == null) {
+                          return const ListTile(
+                            title: Text('Convidado desconhecido'),
+                          );
+                        }
+
+                        return FutureBuilder<User?>(
+                          future: context
+                              .read<UserRepositorySqlite>()
+                              .getProfile(guestId),
+                          builder: (context, snapshot) {
+                            final guestUser = snapshot.data;
+                            final username =
+                                guestUser?.username ?? 'Desconhecido';
+
+                            return ListTile(
+                              title: Text('Username: $username'),
+                              subtitle: Text(
+                                'Status: ${_getInvitationStatusText(invitation.invitationStatus)}',
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -505,6 +535,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                     const SizedBox(height: 8),
                   ],
                 ],
+
                 if (!_isReadOnly)
                   AppButtonWidget(
                     text: 'Salvar compromisso',
