@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
@@ -13,29 +13,48 @@ class LoginView extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  void _loginUser(context) {
+  Future<void> _loginUser(context) async {
     if (!_formKey.currentState!.validate()) return;
 
-    final userRepository = Provider.of<UserRepositoryMemory>(
+    final userRepository = Provider.of<UserRepository>(
       context,
       listen: false,
     );
 
-    bool userLogged = userRepository.login(
-      emailController.text,
-      passwordController.text,
-    );
-
-    if (!userLogged) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('E-mail ou senha inválidos.'),
-          backgroundColor: Colors.red,
-        ),
+    try {
+      bool userLogged = await userRepository.login(
+        emailController.text,
+        passwordController.text,
       );
-      return;
+
+      if (userLogged) {
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/schedule',
+            (route) => false,
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('E-mail ou senha inválidos.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-    Navigator.pushNamedAndRemoveUntil(context, '/schedule', (route) => false);
   }
 
   @override

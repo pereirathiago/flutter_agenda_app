@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +26,7 @@ class InvitationsScreenView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userRepo = context.watch<UserRepositoryMemory>();
+    final userRepo = context.watch<UserRepository>();
     final invitationRepo = context.watch<InvitationRepositoryMemory>();
 
     final loggedUser = userRepo.loggedUser;

@@ -3,13 +3,13 @@ import 'package:flutter_agenda_app/models/user.dart';
 
 abstract class UserRepository extends ChangeNotifier {
   User? get loggedUser;
-  List<User> get users;
+  Future<List<User>> get users;
 
-  void register(User user);
-  bool login(String email, String password);
-  void logout();
-  void editProfile(User updatedUser);
-  User? getProfile(String userId);
-  User? getUserByEmail(String email);
-  User? getUserByUsername(String username);
+  Future<void> register(User user);
+  Future<bool> login(String email, String password);
+  Future<void> logout();
+  Future<void> editProfile(User updatedUser);
+  Future<User?> getProfile(int userId);
+  Future<User?> getUserByEmail(String email);
+  Future<User?> getUserByUsername(String username);
 }
