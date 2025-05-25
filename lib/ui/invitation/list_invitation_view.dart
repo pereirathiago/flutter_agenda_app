@@ -31,11 +31,7 @@ class InvitationsScreenView extends StatelessWidget {
   Widget build(BuildContext context) {
     final userRepo = context.watch<UserRepositorySqlite>();
     final invitationRepo = context.watch<InvitationRepositorySqlite>();
-    final appointmentRepo =
-        context
-            .watch<
-              AppointmentsRepositorySqlite
-            >(); 
+    final appointmentRepo = context.watch<AppointmentsRepositorySqlite>();
 
     final loggedUser = userRepo.loggedUser;
 
@@ -69,14 +65,12 @@ class InvitationsScreenView extends StatelessWidget {
           itemCount: invitations.length,
           itemBuilder: (context, index) {
             final invitation = invitations[index];
-            return FutureBuilder<List<Appointment>>(
-              future: appointmentRepo.getAppointmentsById(
-                1,
+            return FutureBuilder<Appointment?>(
+              future: appointmentRepo.getAppointmentById(
+                invitation.appointmentId!,
               ),
               builder: (context, appointmentSnapshot) {
-                final appointment = (appointmentSnapshot.data != null && appointmentSnapshot.data!.isNotEmpty)
-                    ? appointmentSnapshot.data!.first
-                    : null;
+                final appointment = appointmentSnapshot.data;
 
                 return Card(
                   color: _getBackgroundColor(invitation.invitationStatus),
@@ -94,10 +88,18 @@ class InvitationsScreenView extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
-                        Text('Título: ${appointment != null ? appointment.title : 'N/A'}'),
-                        Text('Local: ${appointment != null ? appointment.local : 'N/A'}'),
-                        Text('Início: ${appointment != null ? appointment.startHourDate : 'N/A'}'),
-                        Text('Fim: ${appointment != null ? appointment.endHourDate : 'N/A'}'),
+                        Text(
+                          'Título: ${appointment != null ? appointment.title : 'N/A'}',
+                        ),
+                        Text(
+                          'Local: ${appointment != null ? appointment.locationId : 'N/A'}',
+                        ),
+                        Text(
+                          'Início: ${appointment != null ? appointment.startHourDate : 'N/A'}',
+                        ),
+                        Text(
+                          'Fim: ${appointment != null ? appointment.endHourDate : 'N/A'}',
+                        ),
                       ],
                     ),
                     trailing: Row(
@@ -107,7 +109,9 @@ class InvitationsScreenView extends StatelessWidget {
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
                             if (invitation.id != null) {
-                              await invitationRepo.acceptInvitation(invitation.id!);
+                              await invitationRepo.acceptInvitation(
+                                invitation.id!,
+                              );
                             }
                           },
                         ),

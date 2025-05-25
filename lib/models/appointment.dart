@@ -8,9 +8,8 @@ class Appointment {
   final bool status;
   final DateTime startHourDate;
   final DateTime endHourDate;
-  final User? appointmentCreator;
-  final String local;
-  final List<Invitation> invitations;
+  final int? appointmentCreatorId;
+  final int? locationId;
 
   Appointment({
     this.id,
@@ -19,10 +18,9 @@ class Appointment {
     required this.status,
     required this.startHourDate,
     required this.endHourDate,
-     this.appointmentCreator,
-    required this.local,
-    List<Invitation>? invitations,
-  }) : invitations = invitations ?? [];
+    required this.appointmentCreatorId,
+    required this.locationId,
+  });
 
 
 factory Appointment.fromJson(Map<String, dynamic> json) {
@@ -33,7 +31,8 @@ factory Appointment.fromJson(Map<String, dynamic> json) {
     status: json['status'] == 1,
     startHourDate: DateTime.parse(json['start_hour_date']),
     endHourDate: DateTime.parse(json['end_hour_date']),
-    local: json['local']
+    locationId: json['location_id'],
+    appointmentCreatorId: json['appointment_creator_id'],
   );
 }
 
@@ -45,8 +44,8 @@ factory Appointment.fromJson(Map<String, dynamic> json) {
       'status': status ? 1 : 0,
       'start_hour_date': startHourDate.toIso8601String(),
       'end_hour_date': endHourDate.toIso8601String(),
-      'local': local,
-      'invitations': invitations.map((invitation) => invitation.toJson()).toList(),
+      'location_id': locationId,
+      'appointment_creator_id': appointmentCreatorId,
     };
   }
 }

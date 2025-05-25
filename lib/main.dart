@@ -18,9 +18,6 @@ void main() {
         ChangeNotifierProvider<AppointmentsRepositorySqlite>(
           create: (context) => AppointmentsRepositorySqlite(),
         ),
-        ChangeNotifierProvider<AppointmentsRepositoryMemory>(
-          create: (context) => AppointmentsRepositoryMemory(),
-        ),
         ChangeNotifierProvider<InvitationRepositorySqlite>(
           create: (context) => InvitationRepositorySqlite(),
         ),
