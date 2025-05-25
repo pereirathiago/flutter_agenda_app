@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/location_repository.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:provider/provider.dart';
@@ -12,18 +13,84 @@ class LocationListView extends StatefulWidget {
 }
 
 class _LocationListViewState extends State<LocationListView> {
+  Future<void> _deleteLocation(
+    BuildContext buildContext,
+    int locationId,
+  ) async {
+    final locationRepository = Provider.of<LocationRepository>(
+      buildContext,
+      listen: false,
+    );
+    try {
+      final deletedLocation = await locationRepository.getById(locationId);
+      await locationRepository.remove(locationId);
+      if (mounted && buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          SnackBar(
+            content: const Text('Local excluído com sucesso!'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'Desfazer',
+              onPressed: () {
+                locationRepository.add(deletedLocation);
+                setState(() {});
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted && buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final locationRepository = Provider.of<LocationRepositoryMemory>(
-      context,
-      listen: true,
-    );
-    final locations = locationRepository.getAll('');
+    final locationRepository = context.watch<LocationRepository>();
+    final userRepository = context.watch<UserRepository>();
+
+    final int? loggedUserId = userRepository.loggedUser?.id;
+
+    if (loggedUserId == null) {
+      return const Center(
+        child: Text(
+          'Usuário não encontrado.',
+          style: TextStyle(fontSize: 18, color: AppColors.primary),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: const AppBarWidget(title: 'Meus Locais'),
-      body:
-          locations.isEmpty
+      body: FutureBuilder(
+        future: locationRepository.getAll(userId: loggedUserId, filter: null),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Erro ao carregar locais: ${snapshot.error.toString().replaceFirst("Exception: ", "")}',
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          final locations = snapshot.data ?? [];
+
+          return locations.isEmpty
               ? const Center(
                 child: Text(
                   'Nenhum local cadastrado.',
@@ -83,25 +150,9 @@ class _LocationListViewState extends State<LocationListView> {
                                 ],
                               ),
                         );
-                        if (confirm == true) {
-                          final messenger = ScaffoldMessenger.of(context);
-                          locationRepository.remove(location.id!);
-                          setState(() {});
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: const Text(
-                                'Local excluído com sucesso!',
-                              ),
-                              action: SnackBarAction(
-                                label: 'Desfazer',
-                                onPressed: () {
-                                  locationRepository.add(location);
-                                  setState(() {});
-                                },
-                              ),
-                            ),
-                          );
-                          return confirm;
+                        if (confirm == true && context.mounted) {
+                          await _deleteLocation(context, location.id!);
+                          return true;
                         }
                         return false;
                       }
@@ -113,11 +164,11 @@ class _LocationListViewState extends State<LocationListView> {
                         color: AppColors.primary,
                       ),
                       title: Text(
-                        location.address ?? 'Endereço desconhecido',
+                        location.address,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        '${location.number?.isEmpty == true ? 'S/N' : location.number} - ${location.city ?? 'Cidade desconhecida'}',
+                        '${location.number.isEmpty == true ? 'S/N' : location.number} - ${location.city}',
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
@@ -130,7 +181,9 @@ class _LocationListViewState extends State<LocationListView> {
                     ),
                   );
                 },
-              ),
+              );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/new-location');

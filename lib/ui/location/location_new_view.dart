@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/location.dart';
-import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/location_repository.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
@@ -47,13 +48,15 @@ class _LocationNewViewState extends State<LocationNewView> {
     }
   }
 
-  void _saveLocation() {
+  Future<void> _saveLocation(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
-    final locationRepository = Provider.of<LocationRepositoryMemory>(
+    final locationRepository = Provider.of<LocationRepository>(
       context,
       listen: false,
     );
+
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
 
     final location = Location(
       id: _location?.id,
@@ -64,27 +67,47 @@ class _LocationNewViewState extends State<LocationNewView> {
       city: _cityController.text,
       state: _stateController.text,
       neighborhood: _neighborhoodController.text,
+      userId: userRepository.loggedUser?.id,
     );
 
-    if (_location == null) {
-      locationRepository.add(location);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Local cadastrado com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else {
-      locationRepository.update(location);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Local atualizado com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
+    try {
+      if (_location == null) {
+        await locationRepository.add(location);
 
-    Navigator.pop(context, true);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Local cadastrado com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        await locationRepository.update(location);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Local atualizado com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+
+      if (context.mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -210,7 +233,7 @@ class _LocationNewViewState extends State<LocationNewView> {
               if (!_isReadOnly)
                 AppButtonWidget(
                   text: _location == null ? 'Cadastrar' : 'Editar',
-                  onPressed: _saveLocation,
+                  onPressed: () => _saveLocation(context),
                 ),
             ],
           ),
