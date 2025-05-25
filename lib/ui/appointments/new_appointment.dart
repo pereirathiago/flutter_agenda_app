@@ -191,7 +191,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(context, true),
                 child: const Text('Cancelar'),
               ),
               TextButton(
@@ -247,7 +247,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   await invitationRepository.addInvitation(newInvitation);
                   await _loadInvitations();
 
-                  Navigator.pop(context);
+                  Navigator.pop(context, true);
                 },
                 child: const Text('Adicionar'),
               ),
@@ -337,7 +337,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         }
       }
 
-      Navigator.pop(context); // Voltar depois do sucesso 🎯✅
+      Navigator.pop(context, true); // Voltar depois do sucesso 🎯✅
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

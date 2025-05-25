@@ -3,6 +3,7 @@ import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
@@ -33,9 +34,11 @@ class _ListScheduleViewState extends State<ListScheduleView> {
   }
 
   Future<List<Appointment>> _fetchAppointments() async {
-    final repo = Provider.of<AppointmentsRepositorySqlite>(context, listen: false);
-    print(repo.getAll());
-    return await repo.getAll();
+    final repo = Provider.of<AppointmentsRepositorySqlite>(
+      context,
+      listen: false,
+    );
+    return await repo.getAll(); // 💾📋✅
   }
 
   Future<void> _refresh() async {
@@ -48,7 +51,7 @@ class _ListScheduleViewState extends State<ListScheduleView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<List<Appointment>>(
-        future: _appointmentsFuture,
+        future: _fetchAppointments(), // 🔁 Executa SEMPRE que rebuilda
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -56,7 +59,9 @@ class _ListScheduleViewState extends State<ListScheduleView> {
 
           if (snapshot.hasError) {
             print(snapshot.error);
-            return const Center(child: Text('Erro ao carregar compromissos 😢📛'));
+            return const Center(
+              child: Text('Erro ao carregar compromissos 😢📛'),
+            );
           }
 
           final appointments = snapshot.data ?? [];
@@ -92,48 +97,72 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                   ),
                   confirmDismiss: (direction) async {
                     if (direction == DismissDirection.startToEnd) {
-                      Navigator.pushNamed(
+                      final result = await Navigator.pushNamed(
                         context,
                         '/new-appointment',
                         arguments: {'appointment': appointment},
                       );
+
+                      // Se retornou algo, recarrega a lista!
+                      if (result == true) {
+                        await _refresh(); // 🍻 Recarrega!
+                      }
+
                       return false;
                     } else if (direction == DismissDirection.endToStart) {
                       final confirm = await showDialog<bool>(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Excluir'),
-                          content: const Text('Deseja realmente excluir este compromisso?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancelar'),
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('Excluir'),
+                              content: const Text(
+                                'Deseja realmente excluir este compromisso?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.pop(context, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Excluir'),
+                                ),
+                              ],
                             ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Excluir'),
-                            ),
-                          ],
-                        ),
                       );
 
                       if (confirm == true) {
                         final messenger = ScaffoldMessenger.of(context);
 
+                        // 👇 SALVA ANTES do context ser potencialmente destruído
+                        final appointmentsRepo =
+                            Provider.of<AppointmentsRepositorySqlite>(
+                              context,
+                              listen: false,
+                            );
+                        final invitationsRepo =
+                            Provider.of<InvitationRepositorySqlite>(
+                              context,
+                              listen: false,
+                            );
+
                         final oldAppointment = appointment;
-                        final oldInvitations = List.from(
-                          Provider.of<InvitationRepositoryMemory>(
-                            context,
-                            listen: false,
-                          ).invitations.where((inv) => inv.appointmentId == appointment.id),
-                        );
+                        final oldInvitations =
+                            await Provider.of<InvitationRepositorySqlite>(
+                              context,
+                              listen: false,
+                            ).getInvitationsByAppointmentAndOrganizer(
+                              appointment.id!,
+                              appointment.appointmentCreatorId!,
+                            );
 
                         await Provider.of<AppointmentsRepositorySqlite>(
                           context,
                           listen: false,
                         ).removeAppointment(appointment.id!);
 
-                        Provider.of<InvitationRepositoryMemory>(
+                        await Provider.of<InvitationRepositorySqlite>(
                           context,
                           listen: false,
                         ).removeInvitationsByAppointmentId(appointment.id!);
@@ -142,23 +171,21 @@ class _ListScheduleViewState extends State<ListScheduleView> {
 
                         messenger.showSnackBar(
                           SnackBar(
-                            content: const Text('Compromisso excluído com sucesso ✅🗑️'),
+                            content: const Text(
+                              'Compromisso excluído com sucesso ✅🗑️',
+                            ),
                             action: SnackBarAction(
                               label: 'Desfazer 🪄',
                               onPressed: () async {
-                                await Provider.of<AppointmentsRepositorySqlite>(
-                                  context,
-                                  listen: false,
-                                ).addAppointment(oldAppointment);
+                                await appointmentsRepo.addAppointment(
+                                  oldAppointment,
+                                );
 
                                 for (var inv in oldInvitations) {
-                                  Provider.of<InvitationRepository>(
-                                    context,
-                                    listen: false,
-                                  ).addInvitation(inv);
+                                  await invitationsRepo.addInvitation(inv);
                                 }
 
-                                await _refresh();
+                                await _refresh(); // 🎯 ainda pode usar isso aqui normalmente
                               },
                             ),
                           ),
@@ -181,20 +208,26 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Local: ${appointment.locationId}'),
-                        Text('Início: ${formatDateTime(appointment.startHourDate)}'),
+                        Text(
+                          'Início: ${formatDateTime(appointment.startHourDate)}',
+                        ),
                         Text('Fim: ${formatDateTime(appointment.endHourDate)}'),
                       ],
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navigator.pushNamed(
+                    onTap: () async {
+                      final result = await Navigator.pushNamed(
                         context,
                         '/new-appointment',
                         arguments: {
-                          'appointment': appointment,
                           'readonly': true,
+                          'appointment': appointment,
                         },
                       );
+
+                      if (result == true) {
+                        await _refresh();
+                      }
                     },
                   ),
                 );

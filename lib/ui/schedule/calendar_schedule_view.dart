@@ -9,7 +9,8 @@ class CalendarScheduleViewPage extends StatefulWidget {
   const CalendarScheduleViewPage({super.key});
 
   @override
-  State<CalendarScheduleViewPage> createState() => _CalendarScheduleViewPageState();
+  State<CalendarScheduleViewPage> createState() =>
+      _CalendarScheduleViewPageState();
 }
 
 class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
@@ -35,7 +36,10 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
   }
 
   Future<List<dynamic>> _fetchAppointments() async {
-    final repo = Provider.of<AppointmentsRepositorySqlite>(context, listen: false);
+    final repo = Provider.of<AppointmentsRepositorySqlite>(
+      context,
+      listen: false,
+    );
     return await repo.getAll();
   }
 
@@ -52,7 +56,7 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
         endTime: app.endHourDate,
         subject: app.title,
         notes: app.description,
-        location: app.local,
+        location: app.locationId?.toString(),
         color: AppColors.primary,
       );
     }).toList();
@@ -77,7 +81,10 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(20)),
               ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
             ),
             menuStyle: const MenuStyle(
               shape: WidgetStatePropertyAll(
@@ -87,12 +94,13 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
               ),
               padding: WidgetStatePropertyAll(EdgeInsets.zero),
             ),
-            dropdownMenuEntries: _labels.entries.map((entry) {
-              return DropdownMenuEntry<CalendarView>(
-                value: entry.key,
-                label: entry.value,
-              );
-            }).toList(),
+            dropdownMenuEntries:
+                _labels.entries.map((entry) {
+                  return DropdownMenuEntry<CalendarView>(
+                    value: entry.key,
+                    label: entry.value,
+                  );
+                }).toList(),
           ),
         ),
         Expanded(
@@ -105,7 +113,9 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return const Center(child: Text('Erro ao carregar compromissos 😖📛'));
+                  return const Center(
+                    child: Text('Erro ao carregar compromissos 😖📛'),
+                  );
                 }
 
                 final appointments = snapshot.data ?? [];
@@ -115,22 +125,32 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
                   onTap: (CalendarTapDetails details) async {
                     final tappedDate = details.date;
 
-                    if (details.targetElement == CalendarElement.calendarCell && tappedDate != null) {
+                    if (details.targetElement == CalendarElement.calendarCell &&
+                        tappedDate != null) {
                       final now = DateTime.now();
                       final today = DateTime(now.year, now.month, now.day);
-                      final selected = DateTime(tappedDate.year, tappedDate.month, tappedDate.day);
+                      final selected = DateTime(
+                        tappedDate.year,
+                        tappedDate.month,
+                        tappedDate.day,
+                      );
 
-                      final appointmentsOnDay = appointments.where((appointment) {
-                        return appointment.startHourDate.year == selected.year &&
-                            appointment.startHourDate.month == selected.month &&
-                            appointment.startHourDate.day == selected.day;
-                      }).toList();
+                      final appointmentsOnDay =
+                          appointments.where((appointment) {
+                            return appointment.startHourDate.year ==
+                                    selected.year &&
+                                appointment.startHourDate.month ==
+                                    selected.month &&
+                                appointment.startHourDate.day == selected.day;
+                          }).toList();
 
                       if (appointmentsOnDay.isEmpty) {
                         if (selected.isBefore(today)) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Não é possível agendar em datas passadas! ⏳🚫'),
+                              content: Text(
+                                'Não é possível agendar em datas passadas! ⏳🚫',
+                              ),
                               backgroundColor: Colors.redAccent,
                             ),
                           );
@@ -145,7 +165,9 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
                         showModalBottomSheet(
                           context: context,
                           shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
                           ),
                           builder: (_) {
                             return Padding(
@@ -167,12 +189,17 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
                                       shrinkWrap: true,
                                       itemCount: appointmentsOnDay.length,
                                       itemBuilder: (context, index) {
-                                        final appointment = appointmentsOnDay[index];
+                                        final appointment =
+                                            appointmentsOnDay[index];
                                         return Card(
                                           color: AppColors.primaryDegrade,
-                                          margin: const EdgeInsets.symmetric(vertical: 8),
+                                          margin: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                          ),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(4),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
                                           child: ListTile(
                                             title: Text(
@@ -202,16 +229,18 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
                                   const SizedBox(height: 16),
                                   !selected.isBefore(today)
                                       ? AppButtonWidget(
-                                          text: 'Novo Compromisso',
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            Navigator.pushNamed(
-                                              context,
-                                              '/new-appointment',
-                                              arguments: {'startHourDate': tappedDate},
-                                            );
-                                          },
-                                        )
+                                        text: 'Novo Compromisso',
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/new-appointment',
+                                            arguments: {
+                                              'startHourDate': tappedDate,
+                                            },
+                                          );
+                                        },
+                                      )
                                       : const SizedBox(),
                                 ],
                               ),
@@ -232,7 +261,8 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
                   ),
                   dataSource: MeetingDataSource(_buildDataSource(appointments)),
                   monthViewSettings: const MonthViewSettings(
-                    appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+                    appointmentDisplayMode:
+                        MonthAppointmentDisplayMode.appointment,
                   ),
                 );
               },
