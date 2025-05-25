@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/user.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
@@ -66,6 +65,7 @@ class InvitationsScreenView extends StatelessWidget {
           itemCount: invitations.length,
           itemBuilder: (context, index) {
             final invitation = invitations[index];
+
             return FutureBuilder<Appointment?>(
               future: appointmentRepo.getAppointmentById(
                 invitation.appointmentId!,
@@ -73,62 +73,76 @@ class InvitationsScreenView extends StatelessWidget {
               builder: (context, appointmentSnapshot) {
                 final appointment = appointmentSnapshot.data;
 
-                return Card(
-                  color: _getBackgroundColor(invitation.invitationStatus),
-                  margin: const EdgeInsets.all(8),
-                  child: ListTile(
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Organizador: ${invitation.idOrganizerUser}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                return FutureBuilder<User?>(
+                  future: userRepo.getProfile(invitation.idOrganizerUser!),
+                  builder: (context, userSnapshot) {
+                    final organizer = userSnapshot.data;
+
+                    return Card(
+                      color: _getBackgroundColor(invitation.invitationStatus),
+                      margin: const EdgeInsets.all(8),
+                      child: ListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Organizador: ${organizer?.username ?? 'Desconhecido'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Status: ${_getStatusText(invitation.invitationStatus)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Título: ${appointment != null ? appointment.title : 'N/A'}',
+                            ),
+                            Text(
+                              'Local: ${appointment != null ? appointment.locationId : 'N/A'}',
+                            ),
+                            Text(
+                              'Início: ${appointment != null ? appointment.startHourDate : 'N/A'}',
+                            ),
+                            Text(
+                              'Fim: ${appointment != null ? appointment.endHourDate : 'N/A'}',
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Status: ${_getStatusText(invitation.invitationStatus)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.check,
+                                color: Colors.green,
+                              ),
+                              onPressed: () async {
+                                if (invitation.id != null) {
+                                  await invitationRepo.acceptInvitation(
+                                    invitation.id!,
+                                  );
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.red),
+                              onPressed: () async {
+                                if (invitation.id != null) {
+                                  await invitationRepo.declineInvitation(
+                                    invitation.id!,
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Título: ${appointment != null ? appointment.title : 'N/A'}',
-                        ),
-                        Text(
-                          'Local: ${appointment != null ? appointment.locationId : 'N/A'}',
-                        ),
-                        Text(
-                          'Início: ${appointment != null ? appointment.startHourDate : 'N/A'}',
-                        ),
-                        Text(
-                          'Fim: ${appointment != null ? appointment.endHourDate : 'N/A'}',
-                        ),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.check, color: Colors.green),
-                          onPressed: () async {
-                            if (invitation.id != null) {
-                              await invitationRepo.acceptInvitation(
-                                invitation.id!,
-                              );
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.red),
-                          onPressed: () async {
-                            if (invitation.id != null) {
-                              await invitationRepo.declineInvitation(
-                                invitation.id!,
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             );

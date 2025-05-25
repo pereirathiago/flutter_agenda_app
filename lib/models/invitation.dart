@@ -16,8 +16,8 @@ class Invitation {
   factory Invitation.fromJson(Map<String, dynamic> json) {
     return Invitation(
       id: json['id'] as int?,
-      idOrganizerUser: json['organizer_user'] as int?,
-      idGuestUser: json['id_guest_user'] as int?,
+      idOrganizerUser: json['organizer_user_id'] as int?,
+      idGuestUser: json['guest_user_id'] as int?,
       invitationStatus: json['invitation_status'] ?? 0,
       appointmentId: json['appointment_id'] as int?,
     );
