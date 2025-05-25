@@ -43,7 +43,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     showTimePicker(context: context, initialTime: TimeOfDay.now()).then((
       value,
     ) {
-      if (value != null) {
+      if (value != null && context.mounted) {
         final time = value.format(context);
         _birthDateController.text = time;
       }
@@ -53,14 +53,13 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   void initState() {
     super.initState();
-    final user =
-        Provider.of<UserRepository>(context, listen: false).loggedUser;
+    final user = Provider.of<UserRepository>(context, listen: false).loggedUser;
 
     if (user != null) {
       _fullNameController.text = user.fullName;
       _usernameController.text = user.username;
       _emailController.text = user.email;
-      _passwordController.text = user.password;
+      _passwordController.text = user.password ?? '';
       _selectedDate = user.birthDate;
       _birthDateController.text =
           user.birthDate != null
@@ -72,10 +71,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Future<void> _saveProfile(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    final userRepository = Provider.of<UserRepository>(
-      context,
-      listen: false,
-    );
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
 
     final user = User(
       id: userRepository.loggedUser?.id ?? 0,

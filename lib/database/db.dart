@@ -30,6 +30,7 @@ class DB {
   String get _user => '''
     CREATE TABLE users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      firebase_uid TEXT NOT NULL UNIQUE,
       username TEXT NOT NULL UNIQUE,
       fullname TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
