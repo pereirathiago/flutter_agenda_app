@@ -77,4 +77,18 @@ class AppointmentsRepositorySqlite extends ChangeNotifier {
       throw Exception('Erro ao listar compromissos 📃🔥👉 $e');
     }
   }
+
+  Future<List<Appointment>> getAppointmentsById(int id) async {
+    try {
+      final db = await _database;
+      final List<Map<String, dynamic>> maps = await db.query('appointments',
+        where: 'appointment_creator_id = ?',
+        whereArgs: [id],
+      );
+
+      return maps.map((map) => Appointment.fromJson(map)).toList(); 
+    } catch (e) {
+      throw Exception('Erro ao listar compromissos 📃🔥👉 $e');
+    }
+  }
 }

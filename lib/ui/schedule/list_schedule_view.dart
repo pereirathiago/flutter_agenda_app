@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
@@ -28,27 +27,33 @@ class _ListScheduleViewState extends State<ListScheduleView> {
   late Future<List<Appointment>> _appointmentsFuture;
 
   @override
-  void initState() {
-    super.initState();
-    _appointmentsFuture = _fetchAppointments();
-  }
-
-  Future<List<Appointment>> _fetchAppointments() async {
-    final repo = Provider.of<AppointmentsRepositorySqlite>(
-      context,
-      listen: false,
-    );
-    return await repo.getAll(); // 💾📋✅
-  }
-
-  Future<void> _refresh() async {
-    setState(() {
-      _appointmentsFuture = _fetchAppointments();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final loggedUser =
+        Provider.of<UserRepositorySqlite>(
+          context,
+          listen: false,
+        ).loggedUser!.id;
+
+    Future<List<Appointment>> _fetchAppointments() async {
+      final repo = Provider.of<AppointmentsRepositorySqlite>(
+        context,
+        listen: false,
+      );
+      return await repo.getAppointmentsById(loggedUser!); // 💾📋✅
+    }
+
+    @override
+    void initState() {
+      super.initState();
+      _appointmentsFuture = _fetchAppointments();
+    }
+
+    Future<void> _refresh() async {
+      setState(() {
+        _appointmentsFuture = _fetchAppointments();
+      });
+    }
+
     return Scaffold(
       body: FutureBuilder<List<Appointment>>(
         future: _fetchAppointments(), // 🔁 Executa SEMPRE que rebuilda
