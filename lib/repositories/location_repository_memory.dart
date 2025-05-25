@@ -9,7 +9,6 @@ class LocationRepositoryMemory extends ChangeNotifier
     implements LocationRepository {
   final List<Location> _locations = [];
 
-  @override
   List<Location> get locations => UnmodifiableListView(_locations);
 
   @override
@@ -30,7 +29,7 @@ class LocationRepositoryMemory extends ChangeNotifier
   }
 
   @override
-  Future<List<Location>> getAll(String? filter) async {
+  Future<List<Location>> getAll({required int userId, String? filter}) async {
     if (filter == null || filter.isEmpty) {
       return _locations;
     }
@@ -52,12 +51,12 @@ class LocationRepositoryMemory extends ChangeNotifier
   }
 
   @override
-  Future<void> update(Location appointment) async {
+  Future<void> update(Location location) async {
     final index = _locations.indexWhere(
-      (location) => location.id == appointment.id,
+      (location) => location.id == location.id,
     );
     if (index != -1) {
-      _locations[index] = appointment;
+      _locations[index] = location;
       notifyListeners();
     }
   }
