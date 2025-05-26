@@ -12,5 +12,4 @@ abstract class UserRepository extends ChangeNotifier {
   Future<User?> getProfile(int userId);
   Future<User?> getUserByEmail(String email);
   Future<User?> getUserByUsername(String username);
-  Future<void> loadUserFromFirebase(String uid);
 }
