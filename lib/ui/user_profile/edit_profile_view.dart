@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
-import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:flutter_agenda_app/ui/user_profile/widget/editable_profile_avatar.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
@@ -27,6 +27,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   final _genderController = TextEditingController();
   DateTime? _selectedDate;
   String _selectedGender = 'Masculino';
+  String? _profileImagePath;
+  int _userId = 0;
 
   @override
   void dispose() {
@@ -43,7 +45,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     showTimePicker(context: context, initialTime: TimeOfDay.now()).then((
       value,
     ) {
-      if (value != null) {
+      if (value != null && context.mounted) {
         final time = value.format(context);
         _birthDateController.text = time;
       }
@@ -53,38 +55,38 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   void initState() {
     super.initState();
-    final user =
-        Provider.of<UserRepository>(context, listen: false).loggedUser;
+    final user = Provider.of<UserRepository>(context, listen: false).loggedUser;
 
     if (user != null) {
+      _userId = user.id!;
       _fullNameController.text = user.fullName;
       _usernameController.text = user.username;
       _emailController.text = user.email;
-      _passwordController.text = user.password;
+      _passwordController.text = user.password ?? '';
       _selectedDate = user.birthDate;
       _birthDateController.text =
           user.birthDate != null
               ? '${user.birthDate!.day}/${user.birthDate!.month}/${user.birthDate!.year}'
               : '';
       _selectedGender = user.gender ?? 'Masculino';
+      _profileImagePath = user.profilePicture;
     }
   }
 
   Future<void> _saveProfile(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    final userRepository = Provider.of<UserRepository>(
-      context,
-      listen: false,
-    );
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
 
     final user = User(
       id: userRepository.loggedUser?.id ?? 0,
+      firebaseUid: userRepository.loggedUser?.firebaseUid,
       fullName: _fullNameController.text,
       username: _usernameController.text,
       email: _emailController.text,
       password: _passwordController.text,
       birthDate: _selectedDate,
       gender: _selectedGender,
+      profilePicture: _profileImagePath,
     );
 
     if (user.id == 0) {
@@ -138,16 +140,24 @@ class _EditProfileViewState extends State<EditProfileView> {
               Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage('assets/images/profile.png'),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.edit, color: AppColors.primary),
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.primaryDegrade,
-                    ),
+                  EditableProfileAvatar(
+                    currentImagePath: _profileImagePath,
+                    userId: _userId.toString(),
+                    onImageUpdated: (newPath) async {
+                      try {
+                        await Provider.of<UserRepository>(
+                          context,
+                          listen: false,
+                        ).updateProfilePicture(_userId, newPath);
+                        setState(() => _profileImagePath = newPath);
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(e.toString())));
+                        }
+                      }
+                    },
                   ),
                 ],
               ),
