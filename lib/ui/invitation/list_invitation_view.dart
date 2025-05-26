@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
+import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/location_repository_memory.dart';
+import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
@@ -10,6 +13,16 @@ import 'package:provider/provider.dart';
 
 class InvitationsScreenView extends StatelessWidget {
   const InvitationsScreenView({super.key});
+
+  String formatDateTime(DateTime dateTime) {
+  String formatTwoDigits(String input) {
+    final regex = RegExp(r'^\d$');
+    return regex.hasMatch(input) ? '0$input' : input;
+  }
+
+  return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} '
+      '${formatTwoDigits(dateTime.hour.toString())}:${formatTwoDigits(dateTime.minute.toString())}';
+}
 
   Color _getBackgroundColor(int status) {
     final statusColors = {
@@ -101,14 +114,25 @@ class InvitationsScreenView extends StatelessWidget {
                             Text(
                               'Título: ${appointment != null ? appointment.title : 'N/A'}',
                             ),
+                            appointment != null
+                                ? FutureBuilder<Location>(
+                                  future: LocationRepositorySqlite().getById(
+                                    appointment.locationId!,
+                                  ),
+                                  builder: (context, locationSnapshot) {
+                                    final location = locationSnapshot.data;
+
+                                    return Text(
+                                      'Local: ${location != null ? '${location.address}, ${location.number} - ${location.city}' : 'Desconhecido'}',
+                                    );
+                                  },
+                                )
+                                : const Text('Local: N/A'),
                             Text(
-                              'Local: ${appointment != null ? appointment.locationId : 'N/A'}',
+                              'Início: ${appointment != null ? formatDateTime(appointment.startHourDate) : 'N/A'}',
                             ),
                             Text(
-                              'Início: ${appointment != null ? appointment.startHourDate : 'N/A'}',
-                            ),
-                            Text(
-                              'Fim: ${appointment != null ? appointment.endHourDate : 'N/A'}',
+                              'Fim: ${appointment != null ? formatDateTime(appointment.endHourDate) : 'N/A'}',
                             ),
                           ],
                         ),
@@ -152,3 +176,4 @@ class InvitationsScreenView extends StatelessWidget {
     );
   }
 }
+

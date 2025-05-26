@@ -484,36 +484,74 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const SizedBox(height: 16),
                 Text('Local'),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<int>(
-                  style: const TextStyle(fontSize: 16, color: AppColors.grey),
-                  value: _selectedLocationId,
-                  items:
-                      _userLocations.map((location) {
-                        return DropdownMenuItem<int>(
-                          value: location.id,
-                          child: Text(
-                            '${location.address}, ${location.number} - ${location.city}',
-                          ),
-                        );
-                      }).toList(),
-                  onChanged:
-                      _isReadOnly
-                          ? null
-                          : (int? value) {
-                            if (value == null) return; // só por segurança 🛡️
-                            setState(() {
-                              _selectedLocationId = value;
-                              _novoLocal = value; // Atualiza junto! 🔁💥
-                            });
-                            print('Novo locationId selecionado: $value 🎯✅');
-                          },
 
-                  decoration: const InputDecoration(
-                    hintText: 'Selecione o local do evento',
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: _userLocations.isEmpty ? 4 : 1,
+                      child: DropdownButtonFormField<int>(
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppColors.grey,
+                        ),
+                        value: _selectedLocationId,
+                        items:
+                            _userLocations.isEmpty
+                                ? [
+                                  const DropdownMenuItem<int>(
+                                    value: null,
+                                    child: Text(
+                                      'Sem locais cadastrados',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                ]
+                                : _userLocations.map((location) {
+                                  return DropdownMenuItem<int>(
+                                    value: location.id,
+                                    child: Text(
+                                      '${location.address}, ${location.number} - ${location.city}',
+                                    ),
+                                  );
+                                }).toList(),
+                        onChanged:
+                            (_userLocations.isEmpty || _isReadOnly)
+                                ? null
+                                : (int? value) {
+                                  if (value == null) return;
+                                  setState(() {
+                                    _selectedLocationId = value;
+                                    _novoLocal = value;
+                                  });
+                                },
+                        decoration: const InputDecoration(
+                          hintText: 'Selecione o local do evento',
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    // Ícone de adicionar local (aparece apenas quando está vazio)
+                    Visibility(
+                      visible: _userLocations.isEmpty,
+                      child: IconButton(
+                        tooltip: 'Adicionar novo local',
+                        icon: const Icon(
+                          Icons.location_on,
+                          color: AppColors.primary,
+                        ),
+                        onPressed:
+                            _isReadOnly
+                                ? null
+                                : () {
+                                  Navigator.pushNamed(context, '/location');
+                                },
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 24),
@@ -543,7 +581,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
 
                         return FutureBuilder<User?>(
                           future: context
-                              .read<UserRepositorySqlite>()
+                              .read<UserRepository>()
                               .getProfile(guestId),
                           builder: (context, snapshot) {
                             final guestUser = snapshot.data;
