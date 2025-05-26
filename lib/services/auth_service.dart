@@ -75,4 +75,63 @@ class AuthService extends ChangeNotifier {
     await _auth.signOut();
     _getUser();
   }
+
+  updateEmail(String newEmail, String currentPassword) async {
+    try {
+      _getUser();
+      if (usuario == null) throw AuthException('Usuário não autenticado');
+
+      final credential = EmailAuthProvider.credential(
+        email: usuario!.email!,
+        password: currentPassword,
+      );
+      await usuario!.reauthenticateWithCredential(credential);
+
+      await usuario!.verifyBeforeUpdateEmail(newEmail);
+      await usuario!.reload();
+      _getUser();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw AuthException(
+          'Por segurança, faça login novamente antes de alterar o email',
+        );
+      }
+      throw AuthException('Erro ao atualizar email: ${e.message}');
+    }
+  }
+
+  updatePassword(String newPassword, String currentPassword) async {
+    try {
+      _getUser();
+      if (usuario == null) throw AuthException('Usuário não autenticado');
+      final credential = EmailAuthProvider.credential(
+        email: usuario!.email!,
+        password: currentPassword,
+      );
+      await usuario!.reauthenticateWithCredential(credential);
+
+      await usuario!.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw AuthException(
+          'Por segurança, faça login novamente antes de alterar a senha',
+        );
+      }
+      throw AuthException('Erro ao atualizar senha: ${e.message}');
+    }
+  }
+
+  reauthenticate(String email, String password) async {
+    try {
+      if (usuario == null) throw AuthException('Usuário não autenticado');
+
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await usuario!.reauthenticateWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException('Autenticação falhou: ${e.message}');
+    }
+  }
 }

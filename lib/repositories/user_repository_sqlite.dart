@@ -130,6 +130,24 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
     Map<String, dynamic> userMap = updatedUser.toJson();
 
     try {
+      if (_loggedUser?.firebaseUid != null) {
+        final authService = AuthService();
+
+        if (updatedUser.email != _loggedUser?.email) {
+          await authService.updateEmail(
+            updatedUser.email,
+            _loggedUser!.password!,
+          );
+        }
+
+        if (updatedUser.password != _loggedUser?.password) {
+          await authService.updatePassword(
+            updatedUser.password!,
+            _loggedUser!.password!,
+          );
+        }
+      }
+
       int count = await db.update(
         'users',
         userMap,

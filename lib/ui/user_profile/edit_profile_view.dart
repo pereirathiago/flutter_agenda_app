@@ -75,6 +75,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
     final user = User(
       id: userRepository.loggedUser?.id ?? 0,
+      firebaseUid: userRepository.loggedUser?.firebaseUid,
       fullName: _fullNameController.text,
       username: _usernameController.text,
       email: _emailController.text,
