@@ -215,7 +215,7 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Local: ${location.address}'),
+                        Text('Local: ${location.address}, ${location.number}'),
                         Text(
                           'Início: ${formatDateTime(appointment.startHourDate)}',
                         ),

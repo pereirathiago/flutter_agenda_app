@@ -484,7 +484,6 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const SizedBox(height: 16),
                 Text('Local'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:provider/provider.dart';
@@ -40,12 +41,22 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
       context,
       listen: false,
     );
-    return await repo.getAll();
+    final userRepo = Provider.of<UserRepository>(context, listen: false);
+    final userId = userRepo.loggedUser?.id;
+
+    if (userId == null) {
+      throw Exception('Usuário não logado! 😵🔒');
+    }
+
+    return await repo.getAppointmentsById(
+      userId,
+    ); // ✅ Somente do usuário logado 🎯
   }
 
   Future<void> _refresh() async {
     setState(() {
-      _appointmentsFuture = _fetchAppointments();
+      _appointmentsFuture =
+          _fetchAppointments(); // Já vai puxar com o filtro agora! 🎉
     });
   }
 
