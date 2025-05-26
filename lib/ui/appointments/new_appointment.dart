@@ -6,13 +6,12 @@ import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.d
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository_memory.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository_memory.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_agenda_app/models/user.dart';
 
 class NewAppointmentView extends StatefulWidget {
   const NewAppointmentView({super.key});
@@ -27,7 +26,8 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   final startHourController = TextEditingController();
   final endHourController = TextEditingController();
   final localController = TextEditingController();
-  int? _selectedLocationId; // 🔹 ID do local selecionado
+  int? _selectedLocationId;
+  int? _novoLocal; // 🔹 ID do local selecionado
   List<Location> _userLocations = []; // 🔹 Locais do usuário logado
   final LocationRepositorySqlite _locationRepository =
       LocationRepositorySqlite(); // 🔹 Instância do repositório
@@ -120,45 +120,34 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     final loggedUser =
         Provider.of<UserRepository>(context, listen: false).loggedUser!;
 
-    if (arguments != null && arguments is Map) {
-      _appointment = arguments['appointment'] as Appointment?;
-      _isReadOnly = arguments['readonly'] == true;
+    _loadUserLocations(loggedUser.id!).then((_) {
+      setState(() {
+        if (arguments != null && arguments is Map) {
+          _appointment = arguments['appointment'] as Appointment?;
+          _isReadOnly = arguments['readonly'] == true;
 
-      if (_appointment != null) {
-        titleController.text = _appointment?.title ?? '';
-        descriptionController.text = _appointment?.description ?? '';
-        startHourController.text =
-            _appointment?.startHourDate != null
-                ? formatDateTime(_appointment!.startHourDate)
-                : '';
-        endHourController.text =
-            _appointment?.endHourDate != null
-                ? formatDateTime(_appointment!.endHourDate)
-                : '';
-        _selectedLocationId = _appointment?.locationId;
-        _loadInvitations();
-      }
-    } else {
-      _appointment = Appointment(
-        id: null,
-        title: '',
-        description: '',
-        status: true,
-        startHourDate: DateTime.now(),
-        endHourDate: DateTime.now().add(const Duration(hours: 1)),
-        locationId: null,
-        appointmentCreatorId: loggedUser.id,
-      );
-    }
-
-    _loadUserLocations(loggedUser.id!); // 🆕 carrega os locais do usuário
+          if (_appointment != null) {
+            titleController.text = _appointment?.title ?? '';
+            descriptionController.text = _appointment?.description ?? '';
+            startHourController.text =
+                _appointment?.startHourDate != null
+                    ? formatDateTime(_appointment!.startHourDate)
+                    : '';
+            endHourController.text =
+                _appointment?.endHourDate != null
+                    ? formatDateTime(_appointment!.endHourDate)
+                    : '';
+            _selectedLocationId = _appointment?.locationId;
+            _loadInvitations();
+          }
+        }
+      });
+    });
   }
 
   Future<void> _loadUserLocations(int userId) async {
     final locations = await _locationRepository.getAll(userId: userId);
-    setState(() {
-      _userLocations = locations;
-    });
+    _userLocations = locations; // Não usa setState aqui
   }
 
   Future<void> _loadInvitations() async {
@@ -313,7 +302,11 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           startHourDate: startDateTime,
           endHourDate: endDateTime,
           appointmentCreatorId: _appointment!.appointmentCreatorId,
-          locationId: int.tryParse(localController.text.trim()) ?? 1,
+          locationId: _novoLocal,
+        );
+
+        print(
+          'Atualizando compromisso com locationId selecionado: $_novoLocal 📍✨',
         );
 
         await appointmentsRepository.updateAppointment(updatedAppointment);
@@ -328,7 +321,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           endHourDate: endDateTime,
           appointmentCreatorId:
               _appointment?.appointmentCreatorId, // pode ser nulo, cuidado!
-          locationId: _appointment?.locationId,
+          locationId: _selectedLocationId,
         );
 
         final insertedId = await appointmentsRepository.addAppointment(
@@ -507,10 +500,14 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       _isReadOnly
                           ? null
                           : (int? value) {
+                            if (value == null) return; // só por segurança 🛡️
                             setState(() {
                               _selectedLocationId = value;
+                              _novoLocal = value; // Atualiza junto! 🔁💥
                             });
+                            print('Novo locationId selecionado: $value 🎯✅');
                           },
+
                   decoration: const InputDecoration(
                     hintText: 'Selecione o local do evento',
                     border: OutlineInputBorder(),

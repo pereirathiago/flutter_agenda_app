@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
+import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/location_repository.dart';
+import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
@@ -24,15 +28,18 @@ String formatDateTime(DateTime dateTime) {
 }
 
 class _ListScheduleViewState extends State<ListScheduleView> {
-  late Future<List<Appointment>> _appointmentsFuture;
-
   @override
   Widget build(BuildContext context) {
+    final localRepository = Provider.of<LocationRepository>(
+      context,
+      listen: false,
+    );
     final loggedUser =
-        Provider.of<UserRepositorySqlite>(
-          context,
-          listen: false,
-        ).loggedUser!.id;
+        Provider.of<UserRepository>(context, listen: false).loggedUser!.id;
+
+    Future<List<Location>> _fetchLocations() async {
+      return await localRepository.getAll(userId: loggedUser!); // 💾📍✅
+    }
 
     Future<List<Appointment>> _fetchAppointments() async {
       final repo = Provider.of<AppointmentsRepositorySqlite>(
@@ -42,21 +49,14 @@ class _ListScheduleViewState extends State<ListScheduleView> {
       return await repo.getAppointmentsById(loggedUser!); // 💾📋✅
     }
 
-    @override
-    void initState() {
-      super.initState();
-      _appointmentsFuture = _fetchAppointments();
-    }
-
     Future<void> _refresh() async {
-      setState(() {
-        _appointmentsFuture = _fetchAppointments();
-      });
+      setState(() {});
     }
 
     return Scaffold(
-      body: FutureBuilder<List<Appointment>>(
-        future: _fetchAppointments(), // 🔁 Executa SEMPRE que rebuilda
+      body: FutureBuilder<List<dynamic>>(
+        future: Future.wait([_fetchAppointments(), _fetchLocations()]),
+
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -64,12 +64,11 @@ class _ListScheduleViewState extends State<ListScheduleView> {
 
           if (snapshot.hasError) {
             print(snapshot.error);
-            return const Center(
-              child: Text('Erro ao carregar compromissos 😢📛'),
-            );
+            return const Center(child: Text('Erro ao carregar dados 😢💥'));
           }
 
-          final appointments = snapshot.data ?? [];
+          final appointments = snapshot.data![0] as List<Appointment>;
+          final locations = snapshot.data![1] as List<Location>;
 
           if (appointments.isEmpty) {
             return const Center(
@@ -85,6 +84,10 @@ class _ListScheduleViewState extends State<ListScheduleView> {
             child: ListView.separated(
               itemBuilder: (context, index) {
                 final appointment = appointments[index];
+                final location = locations.firstWhere(
+                  (loc) => loc.id == appointment.locationId,
+                );
+
                 return Dismissible(
                   key: Key(appointment.id.toString()),
                   direction: DismissDirection.horizontal,
@@ -212,13 +215,14 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Local: ${appointment.locationId}'),
+                        Text('Local: ${location.address}'),
                         Text(
                           'Início: ${formatDateTime(appointment.startHourDate)}',
                         ),
                         Text('Fim: ${formatDateTime(appointment.endHourDate)}'),
                       ],
                     ),
+
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () async {
                       final result = await Navigator.pushNamed(
