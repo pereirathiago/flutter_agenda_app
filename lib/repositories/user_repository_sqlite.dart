@@ -181,6 +181,27 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
   }
 
   @override
+  Future<void> updateProfilePicture(int userId, String imagePath) async {
+    final db = await _database;
+
+    try {
+      await db.update(
+        'users',
+        {'profile_picture': imagePath},
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+
+      if (_loggedUser?.id == userId) {
+        _loggedUser = _loggedUser?.copyWith(profilePicture: imagePath);
+        notifyListeners();
+      }
+    } catch (e) {
+      throw Exception('Erro ao atualizar imagem de perfil: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<User?> getProfile(int userId) async {
     try {
       final db = await _database;

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/services/auth_service.dart';
@@ -65,10 +67,7 @@ class UserProfileView extends StatelessWidget {
                     border: Border.all(color: AppColors.primary, width: 3),
                   ),
                   child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/profile.png',
-                      fit: BoxFit.cover,
-                    ),
+                    child: _buildProfileImage(user.profilePicture),
                   ),
                 ),
               ),
@@ -118,5 +117,24 @@ class UserProfileView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildProfileImage(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return Image.asset('assets/images/profile.png', fit: BoxFit.cover);
+    } else {
+      final file = File(imagePath);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset('assets/images/profile.png', fit: BoxFit.cover);
+          },
+        );
+      } else {
+        return Image.asset('assets/images/profile.png', fit: BoxFit.cover);
+      }
+    }
   }
 }
