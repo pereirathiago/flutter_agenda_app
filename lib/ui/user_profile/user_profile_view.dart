@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
-import 'package:flutter_agenda_app/services/auth_service.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/user_profile/widget/info_card_profile_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
@@ -42,12 +39,6 @@ class UserProfileView extends StatelessWidget {
     final user = userRepository.loggedUser;
 
     if (user == null) {
-      AuthService().logout();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          Navigator.pushNamed(context, '/login');
-        }
-      });
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -67,7 +58,10 @@ class UserProfileView extends StatelessWidget {
                     border: Border.all(color: AppColors.primary, width: 3),
                   ),
                   child: ClipOval(
-                    child: _buildProfileImage(user.profilePicture),
+                    child: Image.asset(
+                      'assets/images/profile.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
@@ -117,24 +111,5 @@ class UserProfileView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildProfileImage(String? imagePath) {
-    if (imagePath == null || imagePath.isEmpty) {
-      return Image.asset('assets/images/profile.png', fit: BoxFit.cover);
-    } else {
-      final file = File(imagePath);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Image.asset('assets/images/profile.png', fit: BoxFit.cover);
-          },
-        );
-      } else {
-        return Image.asset('assets/images/profile.png', fit: BoxFit.cover);
-      }
-    }
   }
 }

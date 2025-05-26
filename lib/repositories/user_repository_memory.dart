@@ -99,10 +99,4 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
       return null;
     }
   }
-
-  @override
-  Future<void> updateProfilePicture(int userId, String imagePath) {
-    // TODO: implement updateProfilePicture
-    throw UnimplementedError();
-  }
 }

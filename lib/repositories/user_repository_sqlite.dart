@@ -1,9 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/database/db.dart';
 import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
-import 'package:flutter_agenda_app/services/auth_service.dart';
 import 'package:sqflite/sqflite.dart';
 
 class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
@@ -32,46 +30,28 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
   @override
   Future<void> register(User user) async {
     final db = await _database;
-    final authService = AuthService();
+
+    Map<String, dynamic> userMap = user.toJson();
 
     try {
-      if (user.password == null || user.password!.isEmpty) {
-        throw Exception('Senha não pode ser nula ou vazia.');
-      }
-
-      await authService.registrarEmailSenha(user.email, user.password!);
-
-      final firebaseUser = authService.usuario;
-      if (firebaseUser == null) {
-        throw Exception('Falha ao registrar no Firebase');
-      }
-
-      user = user.copyWith(firebaseUid: firebaseUser.uid);
-
       final id = await db.insert(
         'users',
-        user.toJson(),
+        userMap,
         conflictAlgorithm: ConflictAlgorithm.fail,
       );
 
       if (id == 0) {
-        await firebaseUser.delete();
         throw Exception('Erro ao cadastrar usuário.');
       }
 
       notifyListeners();
-    } on firebase_auth.FirebaseAuthException catch (e) {
-      throw AuthException(e.message ?? 'Erro ao registrar no Firebase');
-    } on DatabaseException catch (e) {
-      if (e.isUniqueConstraintError()) {
+    } catch (e) {
+      if (e is DatabaseException && e.isUniqueConstraintError()) {
         throw Exception(
           'Usuário já cadastrado com esse e-mail ou nome de usuário.',
         );
       }
 
-      authService.usuario != null ? await authService.usuario!.delete() : null;
-      throw Exception('Erro ao cadastrar usuário no banco');
-    } catch (e) {
       throw Exception('Erro ao cadastrar usuário');
     }
   }
@@ -79,18 +59,12 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
   @override
   Future<bool> login(String email, String password) async {
     try {
-      final authService = AuthService();
-      await authService.loginEmailSenha(email, password);
-
-      final firebaseUser = authService.usuario;
-      if (firebaseUser == null) return false;
-
       final db = await _database;
 
       final List<Map<String, dynamic>> maps = await db.query(
         'users',
-        where: 'email = ?',
-        whereArgs: [email],
+        where: 'email = ? AND password = ?',
+        whereArgs: [email, password],
       );
 
       if (maps.isNotEmpty) {
@@ -100,19 +74,14 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
       }
 
       return false;
-    } on firebase_auth.FirebaseAuthException catch (e) {
-      throw AuthException(e.message ?? 'Erro ao fazer login');
     } catch (e) {
-      throw Exception('Erro ao fazer login: ${e.toString()}');
+      throw Exception('Erro ao fazer login');
     }
   }
 
   @override
   Future<void> logout() async {
     try {
-      final authService = AuthService();
-      await authService.logout();
-
       _loggedUser = null;
       notifyListeners();
     } catch (e) {
@@ -130,24 +99,6 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
     Map<String, dynamic> userMap = updatedUser.toJson();
 
     try {
-      if (_loggedUser?.firebaseUid != null) {
-        final authService = AuthService();
-
-        if (updatedUser.email != _loggedUser?.email) {
-          await authService.updateEmail(
-            updatedUser.email,
-            _loggedUser!.password!,
-          );
-        }
-
-        if (updatedUser.password != _loggedUser?.password) {
-          await authService.updatePassword(
-            updatedUser.password!,
-            _loggedUser!.password!,
-          );
-        }
-      }
-
       int count = await db.update(
         'users',
         userMap,
@@ -177,27 +128,6 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
       }
     } catch (e) {
       throw Exception('Ocorreu um erro inesperado.');
-    }
-  }
-
-  @override
-  Future<void> updateProfilePicture(int userId, String imagePath) async {
-    final db = await _database;
-
-    try {
-      await db.update(
-        'users',
-        {'profile_picture': imagePath},
-        where: 'id = ?',
-        whereArgs: [userId],
-      );
-
-      if (_loggedUser?.id == userId) {
-        _loggedUser = _loggedUser?.copyWith(profilePicture: imagePath);
-        notifyListeners();
-      }
-    } catch (e) {
-      throw Exception('Erro ao atualizar imagem de perfil: ${e.toString()}');
     }
   }
 
