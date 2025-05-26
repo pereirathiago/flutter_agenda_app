@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
-import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:flutter_agenda_app/ui/user_profile/widget/editable_profile_avatar.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
@@ -27,6 +27,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   final _genderController = TextEditingController();
   DateTime? _selectedDate;
   String _selectedGender = 'Masculino';
+  String? _profileImagePath;
+  int _userId = 0;
 
   @override
   void dispose() {
@@ -56,6 +58,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     final user = Provider.of<UserRepository>(context, listen: false).loggedUser;
 
     if (user != null) {
+      _userId = user.id!;
       _fullNameController.text = user.fullName;
       _usernameController.text = user.username;
       _emailController.text = user.email;
@@ -66,6 +69,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               ? '${user.birthDate!.day}/${user.birthDate!.month}/${user.birthDate!.year}'
               : '';
       _selectedGender = user.gender ?? 'Masculino';
+      _profileImagePath = user.profilePicture;
     }
   }
 
@@ -82,6 +86,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       password: _passwordController.text,
       birthDate: _selectedDate,
       gender: _selectedGender,
+      profilePicture: _profileImagePath,
     );
 
     if (user.id == 0) {
@@ -135,16 +140,24 @@ class _EditProfileViewState extends State<EditProfileView> {
               Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage('assets/images/profile.png'),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.edit, color: AppColors.primary),
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.primaryDegrade,
-                    ),
+                  EditableProfileAvatar(
+                    currentImagePath: _profileImagePath,
+                    userId: _userId.toString(),
+                    onImageUpdated: (newPath) async {
+                      try {
+                        await Provider.of<UserRepository>(
+                          context,
+                          listen: false,
+                        ).updateProfilePicture(_userId, newPath);
+                        setState(() => _profileImagePath = newPath);
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(e.toString())));
+                        }
+                      }
+                    },
                   ),
                 ],
               ),

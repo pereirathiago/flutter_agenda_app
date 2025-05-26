@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'dart:io';
 
 class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -12,6 +15,9 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userRepository = context.watch<UserRepository>();
+    final profilePicture = userRepository.loggedUser?.profilePicture;
+
     return showBackButton
         ? AppBar(
           backgroundColor: Colors.transparent,
@@ -23,9 +29,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
               radius: 32,
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/');
-                },
+                onPressed: () => Navigator.pushNamed(context, '/'),
               ),
             ),
           ),
@@ -43,25 +47,34 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
                     Icons.location_on,
                     color: AppColors.primaryDegrade,
                   ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/location');
-                  },
+                  onPressed: () => Navigator.pushNamed(context, '/location'),
                 ),
               ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/profile');
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(60.0),
-                  child: Image.asset('assets/images/profile.png'),
+                onTap: () => Navigator.pushNamed(context, '/profile'),
+                child: CircleAvatar(
+                  backgroundImage: _getProfileImage(profilePicture),
+                  radius: 16,
                 ),
               ),
             ),
           ],
         );
+  }
+
+  ImageProvider? _getProfileImage(String? imagePath) {
+    if (imagePath == null) return const AssetImage('assets/images/profile.png');
+    if (imagePath.startsWith('assets/')) return AssetImage(imagePath);
+
+    final file = File(imagePath);
+    if (file.existsSync()) {
+      final bytes = file.readAsBytesSync();
+      return MemoryImage(bytes);
+    } else {
+      return const AssetImage('assets/images/profile.png');
+    }
   }
 
   @override

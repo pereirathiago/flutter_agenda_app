@@ -9,6 +9,7 @@ abstract class UserRepository extends ChangeNotifier {
   Future<bool> login(String email, String password);
   Future<void> logout();
   Future<void> editProfile(User updatedUser);
+  Future<void> updateProfilePicture(int userId, String imagePath);
   Future<User?> getProfile(int userId);
   Future<User?> getUserByEmail(String email);
   Future<User?> getUserByUsername(String username);
