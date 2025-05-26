@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +14,10 @@ class _AuthCheckState extends State<AuthCheck> {
   @override
   Widget build(BuildContext context) {
     AuthService auth = Provider.of<AuthService>(context);
+    UserRepository userRepository = Provider.of<UserRepository>(
+      context,
+      listen: false,
+    );
 
     if (auth.isLoading) {
       return loading();
@@ -25,6 +30,7 @@ class _AuthCheckState extends State<AuthCheck> {
             Navigator.of(context).pushReplacementNamed('/login-register');
           }
         } else {
+          userRepository.loadUserFromFirebase(auth.usuario?.uid ?? '');
           if (currentRouteName != '/home') {
             Navigator.of(context).pushReplacementNamed('/schedule');
           }
