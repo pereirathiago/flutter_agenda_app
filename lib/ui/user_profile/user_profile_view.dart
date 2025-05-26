@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
+import 'package:flutter_agenda_app/services/auth_service.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/user_profile/widget/info_card_profile_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
@@ -39,6 +40,12 @@ class UserProfileView extends StatelessWidget {
     final user = userRepository.loggedUser;
 
     if (user == null) {
+      AuthService().logout();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          Navigator.pushNamed(context, '/login');
+        }
+      });
       return const Center(child: CircularProgressIndicator());
     }
 

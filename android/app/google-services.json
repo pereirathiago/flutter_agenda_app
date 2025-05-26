@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "12957432051",
+    "project_id": "flutter-agenda-app-1ccd5",
+    "storage_bucket": "flutter-agenda-app-1ccd5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:12957432051:android:737744d244091ced575f86",
+        "android_client_info": {
+          "package_name": "com.example.flutter_agenda_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASLd440fZ1ynLPm5W7LLCjm-mTRLSwa9c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
