@@ -7,6 +7,7 @@ import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dar
 import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
+import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
@@ -26,6 +27,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   final startHourController = TextEditingController();
   final endHourController = TextEditingController();
   final localController = TextEditingController();
+  int? usuarioLogado;
   int? _selectedLocationId;
   int? _novoLocal; // 🔹 ID do local selecionado
   List<Location> _userLocations = []; // 🔹 Locais do usuário logado
@@ -119,6 +121,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     final arguments = ModalRoute.of(context)?.settings.arguments;
     final loggedUser =
         Provider.of<UserRepository>(context, listen: false).loggedUser!;
+    usuarioLogado = loggedUser.id;
 
     _loadUserLocations(loggedUser.id!).then((_) {
       setState(() {
@@ -306,7 +309,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         );
 
         print(
-          'Atualizando compromisso com locationId selecionado: $_novoLocal 📍✨',
+          'Atualizando compromisso com locationId selecionado: $_appointment 📍✨',
         );
 
         await appointmentsRepository.updateAppointment(updatedAppointment);
@@ -319,8 +322,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           status: true,
           startHourDate: startDateTime,
           endHourDate: endDateTime,
-          appointmentCreatorId:
-              _appointment?.appointmentCreatorId, // pode ser nulo, cuidado!
+          appointmentCreatorId: usuarioLogado, // pode ser nulo, cuidado!
           locationId: _selectedLocationId,
         );
 
@@ -486,6 +488,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                 Text('Local'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
+                  style: const TextStyle(fontSize: 16, color: AppColors.grey),
                   value: _selectedLocationId,
                   items:
                       _userLocations.map((location) {
@@ -510,7 +513,6 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
 
                   decoration: const InputDecoration(
                     hintText: 'Selecione o local do evento',
-                    border: OutlineInputBorder(),
                   ),
                 ),
 
