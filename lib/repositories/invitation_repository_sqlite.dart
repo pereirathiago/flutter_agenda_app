@@ -91,4 +91,11 @@ class InvitationRepositorySqlite extends InvitationRepository {
     await db.delete('invitations', where: 'appointment_id = ?', whereArgs: [id]);
     notifyListeners();
   }
+
+  @override
+  Future<void> removeInvitation(int id) async {
+    final db = await _database;
+    await db.delete('invitations', where: 'id = ?', whereArgs: [id]);
+    notifyListeners();
+  }
 }
