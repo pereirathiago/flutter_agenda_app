@@ -27,9 +27,9 @@ class InvitationRepositoryMemory extends InvitationRepository {
         .toList();
   }
 
-  Future<List<Invitation>> getInvitationsByGuestUsername(String username) async {
+  Future<List<Invitation>> getInvitationsByGuestUsername(int userId) async {
     return _invitations
-        .where((inv) => inv.idGuestUser == username)
+        .where((inv) => inv.idGuestUser == userId)
         .toList();
   }
 
@@ -55,5 +55,11 @@ class InvitationRepositoryMemory extends InvitationRepository {
   Future<void> removeInvitationsByAppointmentId(int id) async {
     _invitations.removeWhere((invitation) => invitation.appointmentId == id);
     notifyListeners();
+  }
+  
+  @override
+  Future<void> removeInvitation(int id) {
+    // TODO: implement removeInvitation
+    throw UnimplementedError();
   }
 }

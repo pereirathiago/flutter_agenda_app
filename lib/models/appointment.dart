@@ -1,6 +1,3 @@
-import 'package:flutter_agenda_app/models/invitation.dart';
-import 'package:flutter_agenda_app/models/user.dart';
-
 class Appointment {
   final int? id;
   final String title;
@@ -22,19 +19,18 @@ class Appointment {
     required this.locationId,
   });
 
-
-factory Appointment.fromJson(Map<String, dynamic> json) {
-  return Appointment(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    status: json['status'] == 1,
-    startHourDate: DateTime.parse(json['start_hour_date']),
-    endHourDate: DateTime.parse(json['end_hour_date']),
-    locationId: json['location_id'],
-    appointmentCreatorId: json['appointment_creator_id'],
-  );
-}
+  factory Appointment.fromJson(Map<String, dynamic> json) {
+    return Appointment(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      status: json['status'] == 1,
+      startHourDate: DateTime.parse(json['start_hour_date']),
+      endHourDate: DateTime.parse(json['end_hour_date']),
+      locationId: json['location_id'],
+      appointmentCreatorId: json['appointment_creator_id'],
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
