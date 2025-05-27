@@ -105,4 +105,9 @@ class UserRepositoryMemory extends ChangeNotifier implements UserRepository {
     // TODO: implement updateProfilePicture
     throw UnimplementedError();
   }
+
+  @override
+  Future<User?> loadUserFromFirebase(String userId) async {
+    return null;
+  }
 }

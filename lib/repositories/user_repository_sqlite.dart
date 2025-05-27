@@ -263,4 +263,26 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
       throw Exception('Erro ao buscar usuário: ${e.toString()}');
     }
   }
+
+  @override
+  Future<void> loadUserFromFirebase(String uid) async {
+    try {
+      final db = await _database;
+
+      final List<Map<String, dynamic>> maps = await db.query(
+        'users',
+        where: 'firebase_uid = ?',
+        whereArgs: [uid],
+      );
+
+      if (maps.isNotEmpty) {
+        _loggedUser = User.fromJson(maps.first);
+        notifyListeners();
+      } else {
+        throw Exception('Usuário não encontrado no Firebase.');
+      }
+    } catch (e) {
+      throw Exception('Erro ao carregar usuário do Firebase: ${e.toString()}');
+    }
+  }
 }
