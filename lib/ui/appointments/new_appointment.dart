@@ -28,10 +28,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   final localController = TextEditingController();
   int? usuarioLogado;
   int? _selectedLocationId;
-  int? _novoLocal; 
-  List<Location> _userLocations = []; 
+  int? _novoLocal;
+  List<Location> _userLocations = [];
   final LocationRepositorySqlite _locationRepository =
-      LocationRepositorySqlite(); 
+      LocationRepositorySqlite();
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -55,6 +55,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   List<Invitation> _invitations = [];
 
   bool verifyDate(BuildContext context) {
+    final now = DateTime.now();
     final title = titleController.text.trim();
     final description = descriptionController.text.trim();
     final locationValid = _selectedLocationId != null;
@@ -69,6 +70,74 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Preencha todos os campos obrigatórios!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+     DateTime? startDateTime;
+    DateTime? endDateTime;
+
+    try {
+      final partsStart = startHourController.text.split(' ');
+      final datePartsStart = partsStart[0].split('/');
+      final timePartsStart = partsStart[1].split(':');
+
+      startDateTime = DateTime(
+        int.parse(datePartsStart[2]),
+        int.parse(datePartsStart[1]),
+        int.parse(datePartsStart[0]),
+        int.parse(timePartsStart[0]),
+        int.parse(timePartsStart[1]),
+      );
+
+      final partsEnd = endHourController.text.split(' ');
+      final datePartsEnd = partsEnd[0].split('/');
+      final timePartsEnd = partsEnd[1].split(':');
+
+      endDateTime = DateTime(
+        int.parse(datePartsEnd[2]),
+        int.parse(datePartsEnd[1]),
+        int.parse(datePartsEnd[0]),
+        int.parse(timePartsEnd[0]),
+        int.parse(timePartsEnd[1]),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Preencha corretamente as datas e horas! 🧨📅'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+
+    if (startDateTime.isBefore(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Data de início não pode ser no passado! ⏳❌'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+
+    if (endDateTime.isBefore(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Data de término não pode ser no passado! ⏳🚫'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+
+    if (endDateTime.isBefore(startDateTime)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Data de término não pode ser antes da data de início! 🪞⛔️',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -112,6 +181,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
             : (dateTime.hour == 0 ? 12 : dateTime.hour);
     return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(hour12.toString())}:${formatTwoDigits(dateTime.minute.toString())} $period';
   }
+  
 
   @override
   void didChangeDependencies() {
@@ -149,7 +219,9 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
 
   Future<void> _loadUserLocations(int userId) async {
     final locations = await _locationRepository.getAll(userId: userId);
-    _userLocations = locations; 
+    setState(() {
+      _userLocations = locations;
+    });
   }
 
   Future<void> _loadInvitations() async {
@@ -165,10 +237,6 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           _appointment!.appointmentCreatorId!,
         );
 
-    print(_appointment!.id);
-
-    final guestUserIds =
-        appointmentInvitations.map((inv) => inv.idGuestUser).toSet().toList();
     setState(() {
       _invitations = appointmentInvitations;
     });
@@ -178,9 +246,12 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     if (invitation.id == null) return;
 
     try {
-      if(invitation.invitationStatus != 0) {
+      if (invitation.invitationStatus != 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Convite já foi respondido'), backgroundColor: Colors.red,),
+          const SnackBar(
+            content: Text('Convite já foi respondido'),
+            backgroundColor: Colors.red,
+          ),
         );
         return;
       }
@@ -193,7 +264,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Convidado removido com sucesso'), backgroundColor: Colors.green,),
+        const SnackBar(
+          content: Text('Convidado removido com sucesso'),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
       print('Erro ao remover convite: $e');
@@ -298,7 +372,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   Future<void> save(BuildContext context) async {
-    if (!verifyDate(context)) return; 
+    if (!verifyDate(context)) return;
 
     final appointmentsRepository = Provider.of<AppointmentsRepositorySqlite>(
       context,
@@ -325,6 +399,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     try {
       if (_appointment?.id != null) {
         // Atualizando compromisso existente
+        _novoLocal ??= _appointment!.locationId;
         final updatedAppointment = Appointment(
           id: _appointment!.id,
           title: titleController.text.trim(),
@@ -349,13 +424,13 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           status: true,
           startHourDate: startDateTime,
           endHourDate: endDateTime,
-          appointmentCreatorId: usuarioLogado, 
+          appointmentCreatorId: usuarioLogado,
           locationId: _selectedLocationId,
         );
 
         final insertedId = await appointmentsRepository.addAppointment(
           newAppointment,
-        ); 
+        );
         for (var inv in await invitationRepository
             .getInvitationsByAppointmentAndOrganizer(
               0,
@@ -372,7 +447,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         }
       }
 
-      Navigator.pop(context, true); 
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -517,11 +592,20 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                     Expanded(
                       flex: _userLocations.isEmpty ? 4 : 1,
                       child: DropdownButtonFormField<int>(
+                        key: ValueKey(
+                          _userLocations.length.toString() +
+                              (_selectedLocationId?.toString() ?? 'null'),
+                        ),
                         style: const TextStyle(
                           fontSize: 16,
                           color: AppColors.grey,
                         ),
-                        value: _selectedLocationId,
+                        value:
+                            _userLocations.any(
+                                  (loc) => loc.id == _selectedLocationId,
+                                )
+                                ? _selectedLocationId
+                                : null,
                         items:
                             _userLocations.isEmpty
                                 ? [
