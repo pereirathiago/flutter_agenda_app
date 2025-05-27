@@ -1,0 +1,22 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "flutter-agenda-app-1ccd5",
+          "appId": "1:12957432051:android:737744d244091ced575f86",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "flutter-agenda-app-1ccd5",
+          "configurations": {
+            "android": "1:12957432051:android:737744d244091ced575f86",
+            "ios": "1:12957432051:ios:dbdbb88a72c0850e575f86"
+          }
+        }
+      }
+    }
+  }
+}
