@@ -14,9 +14,11 @@ A interface foi desenvolvida com foco em **simplicidade** e **experiência do us
 
 ## Atividades da Equipe
 
-- **Giovanne Ribeiro Mika**: Desenvolvimento do CRUD de compromissos e telas relacionadas, formatação dos campos de datas e validações, documentação do projeto, correção de bugs e participação nos testes.
-- **Thiago Pereira**: Gerenciamento de usuários, desenvolvimento do CRUD de usuários e locais, implementações das validações de entrada, desenvolvimento das telas de login, cadastro e homepage (agenda) e componentização dos widgets.
-- **Matheus Andreiczuk**: Implementação do sistema de convites e convidados, validações e padronizações relacionadas, criação da tela de visualização de convites recebidos, implementação da dinâmica de confirmação/recusa de convites, correção de bugs e participação nos testes.
+- **Giovanne Ribeiro Mika**: Adaptação do CRUD de compromissos para o uso de banco de dados, desenvolvimento do select box de locais no cadastro de compromissos. Adicionou bugs ao projeto.
+- **Thiago Pereira**: Adaptação do CRUD de usuários e locais para o uso de banco de dados, autenticação de usuários, correção do bug de compartilhamento de locais, 
+implementou alteração de foto de perfil do usuário.
+- **Matheus Andreiczuk**: Adaptação do CRUD e lógica de convites/convidados para o uso de banco de dados e implementação de nova funcionalidade de exclusão de convidados, 
+correção dos demais bugs anteriormente citados.
 
 ---
 
@@ -70,18 +72,15 @@ Para instalar e executar o projeto no ambiente local:
 
 ## Bugs Conhecidos
 
-- Ao excluir um compromisso e, em seguida, selecionar a opção para desfazer a exclusão, os convidados previamente associados ao compromisso não são recuperados, resultando na perda dessas informações.
-- Compromissos e locais são atualmente compartilhados entre todos os usuários, não sendo filtrados individualmente para que cada usuário visualize apenas os compromissos e locais que criou.
 - Após o cadastro de um novo compromisso, sua exibição no calendário dinâmico depende de uma interação manual do usuário na tela (como rolar ou navegar), para que a lista de compromissos seja atualizada e o novo compromisso apareça.
 - O sistema ainda não está configurado para o fuso horário brasileiro (-3 GMT), podendo gerar inconsistências nos horários exibidos.
+- A lista de compromissos pode não aparecer instantaneamente, sendo necessário aguardar um pouco ou trocar de tela e voltar.
 
 ---
 
 ## Funcionalidades Faltantes
 
-- A foto de perfil do usuário ainda não é alterável, permanecendo fixa após o cadastro inicial.
-- Inclusão de um campo do tipo **SELECT** na tela de criação de compromisso, permitindo a seleção dos locais cadastrados, evitando a necessidade de digitação manual do local.
-- Inclusão de um campo do tipo **SELECT** na tela de edição de compromisso, na funcionalidade de convite de participantes, permitindo escolher o usuário a ser convidado sem a necessidade de digitar manualmente o identificador ou nome.
+- Não há
 
 ---
 
