@@ -5,7 +5,6 @@ import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
@@ -29,10 +28,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   final localController = TextEditingController();
   int? usuarioLogado;
   int? _selectedLocationId;
-  int? _novoLocal; // 🔹 ID do local selecionado
-  List<Location> _userLocations = []; // 🔹 Locais do usuário logado
+  int? _novoLocal; 
+  List<Location> _userLocations = []; 
   final LocationRepositorySqlite _locationRepository =
-      LocationRepositorySqlite(); // 🔹 Instância do repositório
+      LocationRepositorySqlite(); 
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -69,7 +68,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         endText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Preencha todos os campos obrigatórios! 🚫🛑📋'),
+          content: Text('Preencha todos os campos obrigatórios!'),
           backgroundColor: Colors.red,
         ),
       );
@@ -150,7 +149,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
 
   Future<void> _loadUserLocations(int userId) async {
     final locations = await _locationRepository.getAll(userId: userId);
-    _userLocations = locations; // Não usa setState aqui
+    _userLocations = locations; 
   }
 
   Future<void> _loadInvitations() async {
@@ -173,6 +172,35 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     setState(() {
       _invitations = appointmentInvitations;
     });
+  }
+
+  void removerConvidado(Invitation invitation) async {
+    if (invitation.id == null) return;
+
+    try {
+      if(invitation.invitationStatus != 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Convite já foi respondido'), backgroundColor: Colors.red,),
+        );
+        return;
+      }
+      await context.read<InvitationRepositorySqlite>().removeInvitation(
+        invitation.id!,
+      );
+
+      setState(() {
+        _invitations.remove(invitation);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Convidado removido com sucesso'), backgroundColor: Colors.green,),
+      );
+    } catch (e) {
+      print('Erro ao remover convite: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao remover convidado')),
+      );
+    }
   }
 
   void _addGuest() async {
@@ -223,12 +251,12 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       guestUsername,
                     );
                   } catch (_) {
-                    _showError('Usuário não encontrado! ❌');
+                    _showError('Usuário não encontrado!');
                     return;
                   }
 
                   if (guestUser == null) {
-                    _showError('Usuário não encontrado! ❌');
+                    _showError('Usuário não encontrado!');
                     return;
                   }
 
@@ -238,7 +266,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
 
                   if (alreadyInvited) {
                     _showError(
-                      'Este usuário já foi convidado para este compromisso! 👥',
+                      'Este usuário já foi convidado para este compromisso!',
                     );
                     return;
                   }
@@ -270,7 +298,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   Future<void> save(BuildContext context) async {
-    if (!verifyDate(context)) return; // ⏰❌
+    if (!verifyDate(context)) return; 
 
     final appointmentsRepository = Provider.of<AppointmentsRepositorySqlite>(
       context,
@@ -287,7 +315,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     if (startDateTime == null || endDateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Data ou hora inválidas. Verifique o formato. ⏰❌'),
+          content: Text('Data ou hora inválidas. Verifique o formato.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -309,12 +337,11 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         );
 
         print(
-          'Atualizando compromisso com locationId selecionado: $_appointment 📍✨',
+          'Atualizando compromisso com locationId selecionado: $_appointment',
         );
 
         await appointmentsRepository.updateAppointment(updatedAppointment);
       } else {
-        // Criando novo compromisso
         final newAppointment = Appointment(
           id: null,
           title: titleController.text.trim(),
@@ -322,15 +349,13 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
           status: true,
           startHourDate: startDateTime,
           endHourDate: endDateTime,
-          appointmentCreatorId: usuarioLogado, // pode ser nulo, cuidado!
+          appointmentCreatorId: usuarioLogado, 
           locationId: _selectedLocationId,
         );
 
         final insertedId = await appointmentsRepository.addAppointment(
           newAppointment,
-        ); // 📌 Retorna id novo
-
-        // Atualizando convites para usar o novo appointmentId
+        ); 
         for (var inv in await invitationRepository
             .getInvitationsByAppointmentAndOrganizer(
               0,
@@ -347,7 +372,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         }
       }
 
-      Navigator.pop(context, true); // Voltar depois do sucesso 🎯✅
+      Navigator.pop(context, true); 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -486,33 +511,71 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                 const SizedBox(height: 16),
                 Text('Local'),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<int>(
-                  style: const TextStyle(fontSize: 16, color: AppColors.grey),
-                  value: _selectedLocationId,
-                  items:
-                      _userLocations.map((location) {
-                        return DropdownMenuItem<int>(
-                          value: location.id,
-                          child: Text(
-                            '${location.address}, ${location.number} - ${location.city}',
-                          ),
-                        );
-                      }).toList(),
-                  onChanged:
-                      _isReadOnly
-                          ? null
-                          : (int? value) {
-                            if (value == null) return; // só por segurança 🛡️
-                            setState(() {
-                              _selectedLocationId = value;
-                              _novoLocal = value; // Atualiza junto! 🔁💥
-                            });
-                            print('Novo locationId selecionado: $value 🎯✅');
-                          },
 
-                  decoration: const InputDecoration(
-                    hintText: 'Selecione o local do evento',
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: _userLocations.isEmpty ? 4 : 1,
+                      child: DropdownButtonFormField<int>(
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppColors.grey,
+                        ),
+                        value: _selectedLocationId,
+                        items:
+                            _userLocations.isEmpty
+                                ? [
+                                  const DropdownMenuItem<int>(
+                                    value: null,
+                                    child: Text(
+                                      'Sem locais cadastrados',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                ]
+                                : _userLocations.map((location) {
+                                  return DropdownMenuItem<int>(
+                                    value: location.id,
+                                    child: Text(
+                                      '${location.address}, ${location.number} - ${location.city}',
+                                    ),
+                                  );
+                                }).toList(),
+                        onChanged:
+                            (_userLocations.isEmpty || _isReadOnly)
+                                ? null
+                                : (int? value) {
+                                  if (value == null) return;
+                                  setState(() {
+                                    _selectedLocationId = value;
+                                    _novoLocal = value;
+                                  });
+                                },
+                        decoration: const InputDecoration(
+                          hintText: 'Selecione o local do evento',
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    Visibility(
+                      visible: _userLocations.isEmpty,
+                      child: IconButton(
+                        tooltip: 'Adicionar novo local',
+                        icon: const Icon(
+                          Icons.location_on,
+                          color: AppColors.primary,
+                        ),
+                        onPressed:
+                            _isReadOnly
+                                ? null
+                                : () {
+                                  Navigator.pushNamed(context, '/location');
+                                },
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 24),
@@ -539,11 +602,10 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                             title: Text('Convidado desconhecido'),
                           );
                         }
-
                         return FutureBuilder<User?>(
-                          future: context
-                              .read<UserRepositorySqlite>()
-                              .getProfile(guestId),
+                          future: context.read<UserRepository>().getProfile(
+                            guestId,
+                          ),
                           builder: (context, snapshot) {
                             final guestUser = snapshot.data;
                             final username =
@@ -554,6 +616,17 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                               subtitle: Text(
                                 'Status: ${_getInvitationStatusText(invitation.invitationStatus)}',
                               ),
+                              trailing:
+                                  !_isReadOnly
+                                      ? IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed:
+                                            () => removerConvidado(invitation),
+                                      )
+                                      : null,
                             );
                           },
                         );
