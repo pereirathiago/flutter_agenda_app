@@ -29,6 +29,7 @@ class ImageService {
           await file.delete();
         }
       } catch (e) {
+        // ignore: avoid_print
         print('Erro ao deletar imagem antiga: $e');
       }
     }

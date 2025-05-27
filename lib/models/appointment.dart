@@ -1,6 +1,3 @@
-import 'package:flutter_agenda_app/models/invitation.dart';
-import 'package:flutter_agenda_app/models/user.dart';
-
 class Appointment {
   final int? id;
   final String title;
@@ -8,9 +5,8 @@ class Appointment {
   final bool status;
   final DateTime startHourDate;
   final DateTime endHourDate;
-  final User appointmentCreator;
-  final String local; //aqui talvez tenha que ser um objeto Location
-  final List<Invitation> invitations;
+  final int? appointmentCreatorId;
+  final int? locationId;
 
   Appointment({
     this.id,
@@ -19,8 +15,33 @@ class Appointment {
     required this.status,
     required this.startHourDate,
     required this.endHourDate,
-    required this.appointmentCreator,
-    required this.local,
-    List<Invitation>? invitations,
-  }) : invitations = invitations ?? [];
+    required this.appointmentCreatorId,
+    required this.locationId,
+  });
+
+  factory Appointment.fromJson(Map<String, dynamic> json) {
+    return Appointment(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      status: json['status'] == 1,
+      startHourDate: DateTime.parse(json['start_hour_date']),
+      endHourDate: DateTime.parse(json['end_hour_date']),
+      locationId: json['location_id'],
+      appointmentCreatorId: json['appointment_creator_id'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'status': status ? 1 : 0,
+      'start_hour_date': startHourDate.toIso8601String(),
+      'end_hour_date': endHourDate.toIso8601String(),
+      'location_id': locationId,
+      'appointment_creator_id': appointmentCreatorId,
+    };
+  }
 }

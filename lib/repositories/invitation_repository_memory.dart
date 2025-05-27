@@ -5,8 +5,8 @@ class InvitationRepositoryMemory extends InvitationRepository {
   final List<Invitation> _invitations = [
     Invitation(
       id: 1,
-      organizerUser: 'Organizador Teste',
-      idGuestUser: 'guestuser1',
+      idOrganizerUser: 1,
+      idGuestUser: 1,
       invitationStatus: 0,
       appointmentId: 1, 
     ),
@@ -15,26 +15,26 @@ class InvitationRepositoryMemory extends InvitationRepository {
   List<Invitation> get invitations => _invitations;
 
   @override
-  void addInvitation(Invitation invitation) {
+  Future<void> addInvitation(Invitation invitation) async {
     _invitations.add(invitation);
     notifyListeners();
   }
 
   @override
-  List<Invitation> getInvitationsByGuestId(String userId) {
+  Future<List<Invitation>> getInvitationsByGuestId(int userId) async {
     return _invitations
         .where((inv) => inv.idGuestUser == userId && inv.invitationStatus == 0)
         .toList();
   }
 
-  List<Invitation> getInvitationsByGuestUsername(String username) {
+  Future<List<Invitation>> getInvitationsByGuestUsername(int userId) async {
     return _invitations
-        .where((inv) => inv.idGuestUser == username)
+        .where((inv) => inv.idGuestUser == userId)
         .toList();
   }
 
   @override
-  void acceptInvitation(int invitationId) {
+  Future<void> acceptInvitation(int invitationId) async {
     final index = _invitations.indexWhere((i) => i.id == invitationId);
     if (index != -1) {
       _invitations[index].invitationStatus = 1;
@@ -43,7 +43,7 @@ class InvitationRepositoryMemory extends InvitationRepository {
   }
 
   @override
-  void declineInvitation(int invitationId) {
+  Future<void> declineInvitation(int invitationId) async {
     final index = _invitations.indexWhere((i) => i.id == invitationId);
     if (index != -1) {
       _invitations[index].invitationStatus = 2;
@@ -52,8 +52,14 @@ class InvitationRepositoryMemory extends InvitationRepository {
   }
 
   @override
-  void removeInvitationsByAppointmentId(int id){
+  Future<void> removeInvitationsByAppointmentId(int id) async {
     _invitations.removeWhere((invitation) => invitation.appointmentId == id);
     notifyListeners();
+  }
+  
+  @override
+  Future<void> removeInvitation(int id) {
+    // TODO: implement removeInvitation
+    throw UnimplementedError();
   }
 }
