@@ -4,9 +4,7 @@ import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/location_repository.dart';
-import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
-import 'package:flutter_agenda_app/repositories/user_repository_sqlite.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:provider/provider.dart';
 
@@ -30,23 +28,28 @@ String formatDateTime(DateTime dateTime) {
 class _ListScheduleViewState extends State<ListScheduleView> {
   @override
   Widget build(BuildContext context) {
-    final localRepository = Provider.of<LocationRepository>(
-      context,
-      listen: false,
-    );
-    final loggedUser =
-        Provider.of<UserRepository>(context, listen: false).loggedUser!.id;
+    final locationRepository = context.watch<LocationRepository>();
+    final userRepository = context.watch<UserRepository>();
+    final appointmentsRepository =
+        context.watch<AppointmentsRepositorySqlite>();
 
-    Future<List<Location>> _fetchLocations() async {
-      return await localRepository.getAll(userId: loggedUser!); // 💾📍✅
+    final int? loggedUserId = userRepository.loggedUser?.id;
+
+    if (loggedUserId == null) {
+      return const Center(
+        child: Text(
+          'Usuário não encontrado.',
+          style: TextStyle(fontSize: 18, color: AppColors.primary),
+        ),
+      );
     }
 
-    Future<List<Appointment>> _fetchAppointments() async {
-      final repo = Provider.of<AppointmentsRepositorySqlite>(
-        context,
-        listen: false,
-      );
-      return await repo.getAppointmentsById(loggedUser!); // 💾📋✅
+    Future<List<Location>> fetchLocations() async {
+      return await locationRepository.getAll(userId: loggedUserId);
+    }
+
+    Future<List<Appointment>> fetchAppointments() async {
+      return await appointmentsRepository.getAppointmentsById(loggedUserId);
     }
 
     Future<void> _refresh() async {
@@ -55,20 +58,27 @@ class _ListScheduleViewState extends State<ListScheduleView> {
 
     return Scaffold(
       body: FutureBuilder<List<dynamic>>(
-        future: Future.wait([_fetchAppointments(), _fetchLocations()]),
-
+        future: Future.wait([fetchAppointments(), fetchLocations()]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            print(snapshot.error);
-            return const Center(child: Text('Erro ao carregar dados 😢💥'));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Erro ao carregar dados: ${snapshot.error.toString().replaceFirst("Exception: ", "")}',
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
           }
 
-          final appointments = snapshot.data![0] as List<Appointment>;
-          final locations = snapshot.data![1] as List<Location>;
+          final appointments = snapshot.data?[0] as List<Appointment>;
+          final locations = snapshot.data?[1] as List<Location>;
 
           if (appointments.isEmpty) {
             return const Center(

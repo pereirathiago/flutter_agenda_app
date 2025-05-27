@@ -81,12 +81,15 @@ class AppointmentsRepositorySqlite extends ChangeNotifier {
   Future<List<Appointment>> getAppointmentsById(int id) async {
     try {
       final db = await _database;
-      final List<Map<String, dynamic>> maps = await db.query('appointments',
+      final List<Map<String, dynamic>> maps = await db.query(
+        'appointments',
         where: 'appointment_creator_id = ?',
         whereArgs: [id],
       );
 
-      return maps.map((map) => Appointment.fromJson(map)).toList(); 
+      return List.generate(maps.length, (i) {
+        return Appointment.fromJson(maps[i]);
+      });
     } catch (e) {
       throw Exception('Erro ao listar compromissos 📃🔥👉 $e');
     }

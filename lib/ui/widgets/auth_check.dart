@@ -30,10 +30,15 @@ class _AuthCheckState extends State<AuthCheck> {
             Navigator.of(context).pushReplacementNamed('/login-register');
           }
         } else {
-          userRepository.loadUserFromFirebase(auth.usuario?.uid ?? '');
-          if (currentRouteName != '/home') {
-            Navigator.of(context).pushReplacementNamed('/schedule');
-          }
+          userRepository.loadUserFromFirebase(auth.usuario?.uid ?? '').then((
+            _,
+          ) {
+            if (userRepository.loggedUser != null &&
+                currentRouteName != '/schedule' &&
+                context.mounted) {
+              Navigator.of(context).pushReplacementNamed('/schedule');
+            }
+          });
         }
       });
 

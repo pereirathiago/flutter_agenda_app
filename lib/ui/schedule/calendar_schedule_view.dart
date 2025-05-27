@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_agenda_app/models/appointment.dart' as ap;
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
@@ -16,7 +17,7 @@ class CalendarScheduleViewPage extends StatefulWidget {
 
 class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
   CalendarView _calendarView = CalendarView.month;
-  late Future<List<dynamic>> _appointmentsFuture;
+  late Future<List<ap.Appointment>> _appointmentsFuture;
 
   void _onCalendarViewChanged(CalendarView view) {
     setState(() {
@@ -33,34 +34,38 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
   @override
   void initState() {
     super.initState();
-    _appointmentsFuture = _fetchAppointments();
+    _appointmentsFuture = Future.value([]);
+    _loadAppointments();
   }
 
-  Future<List<dynamic>> _fetchAppointments() async {
-    final repo = Provider.of<AppointmentsRepositorySqlite>(
-      context,
-      listen: false,
-    );
-    final userRepo = Provider.of<UserRepository>(context, listen: false);
+  Future<void> _loadAppointments() async {
+    final userRepo = context.read<UserRepository>();
+
+    await Future.doWhile(() async {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return userRepo.loggedUser == null;
+    });
+
+    setState(() {
+      _appointmentsFuture = _fetchAppointments();
+    });
+  }
+
+  Future<List<ap.Appointment>> _fetchAppointments() async {
+    final repo = context.read<AppointmentsRepositorySqlite>();
+    final userRepo = context.read<UserRepository>();
     final userId = userRepo.loggedUser?.id;
 
     if (userId == null) {
       throw Exception('Usuário não logado! 😵🔒');
     }
 
-    return await repo.getAppointmentsById(
-      userId,
-    ); // ✅ Somente do usuário logado 🎯
-  }
-
-  Future<void> _refresh() async {
-    setState(() {
-      _appointmentsFuture =
-          _fetchAppointments(); // Já vai puxar com o filtro agora! 🎉
-    });
+    final appointments = await repo.getAppointmentsById(userId);
+    return appointments;
   }
 
   List<Appointment> _buildDataSource(List<dynamic> appointments) {
+    appointments = appointments as List<ap.Appointment>;
     return appointments.map((app) {
       return Appointment(
         startTime: app.startHourDate,
@@ -117,19 +122,46 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: FutureBuilder<List<dynamic>>(
+            child: FutureBuilder<List<ap.Appointment>>(
               future: _appointmentsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('Erro ao carregar compromissos 😖📛'),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 60,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          snapshot.error.toString().replaceFirst(
+                            'Exception: ',
+                            '',
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadAppointments,
+                          child: const Text('Tentar novamente'),
+                        ),
+                      ],
+                    ),
                   );
                 }
 
-                final appointments = snapshot.data ?? [];
+                final appointments = (snapshot.data ?? []);
+
                 return SfCalendar(
                   key: ValueKey(_calendarView),
                   view: _calendarView,

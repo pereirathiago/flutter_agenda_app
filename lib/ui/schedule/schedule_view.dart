@@ -27,27 +27,30 @@ class _ScheduleViewState extends State<ScheduleView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarWidget(),
-      floatingActionButton: 
-     ValueListenableBuilder<int>(
-      valueListenable: currentPageNotifier,
-      builder: (context, currentPage, child) {
-        return (currentPage != 2) 
-            ?
-      FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/new-appointment');
+      floatingActionButton: ValueListenableBuilder<int>(
+        valueListenable: currentPageNotifier,
+        builder: (context, currentPage, child) {
+          return (currentPage != 2)
+              ? FloatingActionButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/new-appointment');
+                },
+                backgroundColor: AppColors.primary,
+                child: const Icon(Icons.add, color: AppColors.primaryDegrade),
+              )
+              : Container();
         },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.primaryDegrade),
-      ): Container();
-      },
       ),
       body: PageView(
         controller: pc,
         onPageChanged: (index) {
           currentPageNotifier.value = index;
         },
-        children: [CalendarScheduleViewPage(), ListScheduleView(), InvitationsScreenView()],
+        children: [
+          CalendarScheduleViewPage(),
+          ListScheduleView(),
+          InvitationsScreenView(),
+        ],
       ),
       bottomNavigationBar: AppNavigationBarWidget(
         pageController: pc,
