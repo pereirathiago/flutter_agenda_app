@@ -89,7 +89,7 @@ Para instalar e executar o projeto no ambiente local:
 
 Este projeto está sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
 
----
+--- 
 
 ## Autores
 
