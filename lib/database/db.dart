@@ -71,11 +71,6 @@ class DB {
     )
   ''';
 
-  // Exemplo de query SQL para inserir um appointment:
-  //Crie uma query SQL baseada nessa estrutura do appointment como se eu fosse cadastrar um diretamente no banco
-  // INSERT INTO appointments (title, description, status, start_hour_date, end_hour_date, appointment_creator_id, location_id)
-  // VALUES ('Reunião de Projeto', 'Discutir requisitos do sistema', 1, '2024-06-01 09:00:00', '2024-06-01 10:00:00', 1, 1);
-
   String get _invitation => '''
     CREATE TABLE invitations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
