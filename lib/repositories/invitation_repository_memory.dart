@@ -8,7 +8,7 @@ class InvitationRepositoryMemory extends InvitationRepository {
       idOrganizerUser: 1,
       idGuestUser: 1,
       invitationStatus: 0,
-      appointmentId: 1, 
+      appointmentId: 1,
     ),
   ];
 
@@ -28,9 +28,7 @@ class InvitationRepositoryMemory extends InvitationRepository {
   }
 
   Future<List<Invitation>> getInvitationsByGuestUsername(int userId) async {
-    return _invitations
-        .where((inv) => inv.idGuestUser == userId)
-        .toList();
+    return _invitations.where((inv) => inv.idGuestUser == userId).toList();
   }
 
   @override
@@ -56,10 +54,25 @@ class InvitationRepositoryMemory extends InvitationRepository {
     _invitations.removeWhere((invitation) => invitation.appointmentId == id);
     notifyListeners();
   }
-  
+
   @override
   Future<void> removeInvitation(int id) {
     // TODO: implement removeInvitation
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Invitation>> getInvitationsByAppointmentAndOrganizer(
+    int appointmentId,
+    int organizerUserId,
+  ) {
+    // TODO: implement getInvitationsByAppointmentAndOrganizer
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateInvitation(Invitation invitation) {
+    // TODO: implement updateInvitation
     throw UnimplementedError();
   }
 }

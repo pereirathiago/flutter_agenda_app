@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/models/location.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
@@ -224,7 +224,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   Future<void> _loadInvitations() async {
-    final invitationRepository = Provider.of<InvitationRepositorySqlite>(
+    final invitationRepository = Provider.of<InvitationRepository>(
       context,
       listen: false,
     );
@@ -254,7 +254,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
         );
         return;
       }
-      await context.read<InvitationRepositorySqlite>().removeInvitation(
+      await context.read<InvitationRepository>().removeInvitation(
         invitation.id!,
       );
 
@@ -278,7 +278,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
 
   void _addGuest() async {
     final userRepository = Provider.of<UserRepository>(context, listen: false);
-    final invitationRepository = Provider.of<InvitationRepositorySqlite>(
+    final invitationRepository = Provider.of<InvitationRepository>(
       context,
       listen: false,
     );
@@ -373,11 +373,11 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   Future<void> save(BuildContext context) async {
     if (!verifyDate(context)) return;
 
-    final appointmentsRepository = Provider.of<AppointmentsRepositorySqlite>(
+    final appointmentsRepository = Provider.of<AppointmentsRepository>(
       context,
       listen: false,
     );
-    final invitationRepository = Provider.of<InvitationRepositorySqlite>(
+    final invitationRepository = Provider.of<InvitationRepository>(
       context,
       listen: false,
     );

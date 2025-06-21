@@ -63,6 +63,7 @@ class UserRepositorySqlite extends ChangeNotifier implements UserRepository {
     } on firebase_auth.FirebaseAuthException catch (e) {
       throw AuthException(e.message ?? 'Erro ao registrar no Firebase');
     } on DatabaseException catch (e) {
+      await authService.usuario!.delete();
       if (e.isUniqueConstraintError()) {
         throw Exception(
           'Usuário já cadastrado com esse e-mail ou nome de usuário.',

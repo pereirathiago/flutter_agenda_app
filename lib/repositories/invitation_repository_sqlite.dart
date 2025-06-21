@@ -8,6 +8,7 @@ class InvitationRepositorySqlite extends InvitationRepository {
 
   Future<Database> get _database async => await _dbInstance.database;
 
+  @override
   Future<List<Invitation>> getInvitationsByAppointmentAndOrganizer(
     int appointmentId,
     int organizerUserId,
@@ -22,6 +23,7 @@ class InvitationRepositorySqlite extends InvitationRepository {
     return maps.map((map) => Invitation.fromJson(map)).toList();
   }
 
+  @override
   Future<void> updateInvitation(Invitation invitation) async {
     final db = await _database;
     await db.update(
