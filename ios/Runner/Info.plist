@@ -47,6 +47,8 @@
 		<true/>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Para selecionar uma foto de perfil</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Sua descrição de por que precisa da câmera</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>
