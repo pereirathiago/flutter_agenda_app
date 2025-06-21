@@ -75,7 +75,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
       );
       return false;
     }
-     DateTime? startDateTime;
+    DateTime? startDateTime;
     DateTime? endDateTime;
 
     try {
@@ -181,7 +181,6 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
             : (dateTime.hour == 0 ? 12 : dateTime.hour);
     return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(hour12.toString())}:${formatTwoDigits(dateTime.minute.toString())} $period';
   }
-  
 
   @override
   void didChangeDependencies() {
@@ -535,11 +534,14 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                           timeStart.hour,
                           timeStart.minute,
                         );
-                        startHourController.text =
-                            '${dateTimeStart.day}/${dateTimeStart.month}/${dateTimeStart.year} ${timeStart.format(context)}';
+                        setState(() {
+                          startHourController.text =
+                              '${dateTimeStart.day}/${dateTimeStart.month}/${dateTimeStart.year} ${timeStart.format(context)}';
+                        });
                       }
                     }
                   },
+
                   decoration: const InputDecoration(
                     hintText: 'Digite a data e hora de início',
                     suffixIcon: Icon(Icons.calendar_today),
