@@ -6,8 +6,8 @@ import 'package:path/path.dart' as path;
 class ImageService {
   final ImagePicker _picker = ImagePicker();
 
-  Future<File?> pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+  Future<File?> pickImage({required ImageSource source}) async {
+    final XFile? image = await _picker.pickImage(source: source);
     if (image == null) return null;
     return File(image.path);
   }

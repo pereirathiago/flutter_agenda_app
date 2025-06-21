@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/services/image_service.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditableProfileAvatar extends StatefulWidget {
   final String? currentImagePath;
@@ -37,7 +38,7 @@ class _EditableProfileAvatarState extends State<EditableProfileAvatar> {
           backgroundImage: _getProfileImage(currentImage),
         ),
         IconButton(
-          onPressed: _changeProfilePicture,
+          onPressed: _showImageSourceModal,
           icon: const Icon(Icons.edit, color: AppColors.primary),
           style: IconButton.styleFrom(
             backgroundColor: AppColors.primaryDegrade,
@@ -63,9 +64,9 @@ class _EditableProfileAvatarState extends State<EditableProfileAvatar> {
     }
   }
 
-  Future<void> _changeProfilePicture() async {
+  Future<void> _changeProfilePicture(ImageSource source) async {
     try {
-      final imageFile = await _imageService.pickImage();
+      final imageFile = await _imageService.pickImage(source: source);
       if (imageFile == null) return;
 
       if (context.mounted) {
@@ -97,5 +98,100 @@ class _EditableProfileAvatarState extends State<EditableProfileAvatar> {
         );
       }
     }
+  }
+
+  Future<void> _showImageSourceModal() async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Alterar foto de perfil',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          iconSize: 50,
+                          icon: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryDegrade,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: AppColors.primary,
+                              size: 30,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _changeProfilePicture(ImageSource.camera);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Câmera',
+                          style: TextStyle(color: AppColors.black),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          iconSize: 50,
+                          icon: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryDegrade,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.photo_library,
+                              color: AppColors.primary,
+                              size: 30,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _changeProfilePicture(ImageSource.gallery);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Galeria',
+                          style: TextStyle(color: AppColors.black),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
