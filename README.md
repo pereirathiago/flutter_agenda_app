@@ -66,7 +66,8 @@ Para instalar e executar o projeto no ambiente local:
 
 - **Flutter** - Framework para desenvolvimento mobile
 - **Dart** - Linguagem principal da aplicação
-- **Provider** - Gerenciamento de estado
+- **SQLite** - Banco de dados local
+- **Firebase** - Auth de usuarios
 
 ---
 
