@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/models/user.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
@@ -41,8 +41,8 @@ class InvitationsScreenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userRepo = context.watch<UserRepository>();
-    final invitationRepo = context.watch<InvitationRepositorySqlite>();
-    final appointmentRepo = context.watch<AppointmentsRepositorySqlite>();
+    final invitationRepo = context.watch<InvitationRepository>();
+    final appointmentRepo = context.watch<AppointmentsRepository>();
 
     final loggedUser = userRepo.loggedUser;
 

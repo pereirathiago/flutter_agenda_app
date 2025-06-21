@@ -10,6 +10,7 @@ class DB {
     if (_database != null) return _database;
 
     return await _initDatabase();
+    // await deleteDatabase(join(await getDatabasesPath(), 'agenda.db'));
   }
 
   _initDatabase() async {

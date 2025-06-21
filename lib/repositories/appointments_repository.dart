@@ -4,9 +4,10 @@ import 'package:flutter_agenda_app/models/appointment.dart';
 abstract class AppointmentsRepository extends ChangeNotifier {
   List<Appointment> get appointments;
 
-  void addAppointment(Appointment appointment);
-  void removeAppointment(int id);
-  void updateAppointment(Appointment appointment);
-  List<Appointment> getAll();
-  Appointment? getAppointmentsById(int id);
+  Future<int> addAppointment(Appointment appointment);
+  Future<void> removeAppointment(int id);
+  Future<void> updateAppointment(Appointment appointment);
+  Future<List<Appointment>> getAll();
+  Future<List<Appointment>> getAppointmentsById(int id);
+  Future<Appointment?> getAppointmentById(int id);
 }
