@@ -46,6 +46,9 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.6
   http: ^1.4.0
+  geolocator: ^10.0.1
+  geocoding: ^2.1.0
+  permission_handler: ^11.3.1
 
 flutter_native_splash:
   color: "#ffffff"
