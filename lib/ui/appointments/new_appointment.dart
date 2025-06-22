@@ -4,7 +4,7 @@ import 'package:flutter_agenda_app/models/invitation.dart';
 import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
-import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/location_repository.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/appointments/widget/comments_section_widget.dart';
@@ -31,8 +31,16 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   int? _selectedLocationId;
   int? _novoLocal;
   List<Location> _userLocations = [];
-  final LocationRepositorySqlite _locationRepository =
-      LocationRepositorySqlite();
+  late final LocationRepository _locationRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _locationRepository = Provider.of<LocationRepository>(
+      context,
+      listen: false,
+    );
+  }
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -52,6 +60,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   bool _isReadOnly = false;
+  bool _isInvition = false;
   Appointment? _appointment;
   List<Invitation> _invitations = [];
 
@@ -218,7 +227,20 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   Future<void> _loadUserLocations(int userId) async {
-    final locations = await _locationRepository.getAll(userId: userId);
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    if (arguments != null && arguments is Map) {
+      _isInvition = arguments['invitation'] == true;
+      _appointment = arguments['appointment'] as Appointment?;
+    }
+
+    List<Location> locations = [];
+    if (_isInvition) {
+      locations = [
+        await _locationRepository.getById(_appointment?.locationId ?? 0),
+      ];
+    } else {
+      locations = await _locationRepository.getAll(userId: userId);
+    }
     setState(() {
       _userLocations = locations;
     });
@@ -647,7 +669,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                     const SizedBox(width: 8),
 
                     Visibility(
-                      visible: _userLocations.isEmpty,
+                      visible: !_isReadOnly,
                       child: IconButton(
                         tooltip: 'Adicionar novo local',
                         icon: const Icon(
