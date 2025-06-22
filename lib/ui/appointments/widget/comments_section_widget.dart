@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/comment.dart';
 import 'package:flutter_agenda_app/repositories/comment_repository.dart';
-import 'package:flutter_agenda_app/repositories/comment_repository_api.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/appointments/widget/comment_item_widget.dart';
@@ -17,43 +16,28 @@ class CommentsSection extends StatefulWidget {
 }
 
 class _CommentsSectionState extends State<CommentsSection> {
-  final CommentRepository _commentRepository = CommentRepositoryApi();
   final TextEditingController _commentController = TextEditingController();
-  late Future<List<Comment>> _commentsFuture;
 
-  @override
-  void initState() {
-    super.initState();
-    _refreshComments();
-  }
-
-  void _refreshComments() {
-    setState(() {
-      _commentsFuture = _commentRepository.getCommentsByAppointment(
-        widget.appointmentId,
-      );
-    });
-  }
-
-  Future<void> _addComment() async {
-    final loggedUser =
-        Provider.of<UserRepository>(context, listen: false).loggedUser!;
+  Future<void> _addComment(
+    CommentRepository commentRepo,
+    UserRepository userRepo,
+  ) async {
     if (_commentController.text.trim().isEmpty) return;
 
     final newComment = Comment(
       id: '',
       appointmentId: widget.appointmentId,
-      userId: loggedUser.id.toString(),
-      userName: loggedUser.fullName,
-      userAvatarUrl: loggedUser.profilePicture!,
+      userId: userRepo.loggedUser!.id.toString(),
+      userName: userRepo.loggedUser!.fullName,
+      userAvatarUrl: userRepo.loggedUser!.profilePicture!,
       text: _commentController.text.trim(),
       createdAt: DateTime.now(),
     );
 
     try {
-      await _commentRepository.addComment(newComment);
+      await commentRepo.addComment(newComment);
       _commentController.clear();
-      _refreshComments();
+      setState(() {});
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,6 +48,9 @@ class _CommentsSectionState extends State<CommentsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final commentRepo = Provider.of<CommentRepository>(context);
+    final userRepo = Provider.of<UserRepository>(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -75,7 +62,7 @@ class _CommentsSectionState extends State<CommentsSection> {
           ),
         ),
         FutureBuilder<List<Comment>>(
-          future: _commentsFuture,
+          future: commentRepo.getCommentsByAppointment(widget.appointmentId),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -118,7 +105,7 @@ class _CommentsSectionState extends State<CommentsSection> {
             IconButton(
               icon: const Icon(Icons.send),
               color: AppColors.primary,
-              onPressed: _addComment,
+              onPressed: () => _addComment(commentRepo, userRepo),
             ),
           ],
         ),

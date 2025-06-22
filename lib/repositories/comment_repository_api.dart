@@ -33,7 +33,9 @@ class CommentRepositoryApi extends ChangeNotifier implements CommentRepository {
     );
 
     if (response.statusCode == 201) {
-      return Comment.fromJson(json.decode(response.body));
+      final newComment = Comment.fromJson(json.decode(response.body));
+      notifyListeners();
+      return newComment;
     } else {
       throw Exception('Falha ao adicionar comentário');
     }
