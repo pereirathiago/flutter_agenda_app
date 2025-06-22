@@ -76,7 +76,7 @@ class _LocationNewViewState extends State<LocationNewView> {
           _addressController.text = place.street ?? '';
           _numberController.text = ''; // Não vem da API, deixar manual
           _neighborhoodController.text = place.subLocality ?? '';
-          _cityController.text = place.locality ?? '';
+          _cityController.text = place.subAdministrativeArea ?? '';
           _stateController.text = place.administrativeArea ?? '';
         });
 
