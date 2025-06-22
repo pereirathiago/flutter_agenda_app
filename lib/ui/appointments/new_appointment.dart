@@ -192,37 +192,54 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(hour12.toString())}:${formatTwoDigits(dateTime.minute.toString())} $period';
   }
 
+  bool _loaded = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final arguments = ModalRoute.of(context)?.settings.arguments;
-    final loggedUser =
-        Provider.of<UserRepository>(context, listen: false).loggedUser!;
-    usuarioLogado = loggedUser.id;
+    if (_loaded) return;
+    _loaded = true;
 
-    _loadUserLocations(loggedUser.id!).then((_) {
-      setState(() {
+    Future.microtask(() async {
+      if (mounted) {
+        final arguments = ModalRoute.of(context)?.settings.arguments;
+
+        final loggedUser =
+            Provider.of<UserRepository>(context, listen: false).loggedUser!;
+        usuarioLogado = loggedUser.id;
+
+        await _loadUserLocations(loggedUser.id!);
+
         if (arguments != null && arguments is Map) {
-          _appointment = arguments['appointment'] as Appointment?;
-          _isReadOnly = arguments['readonly'] == true;
+          final appointment = arguments['appointment'] as Appointment?;
+          final isReadOnly = arguments['readonly'] == true;
+
+          setState(() {
+            _appointment = appointment;
+            _isReadOnly = isReadOnly;
+
+            if (_appointment != null) {
+              titleController.text = _appointment?.title ?? '';
+              descriptionController.text = _appointment?.description ?? '';
+              startHourController.text =
+                  _appointment?.startHourDate != null
+                      ? formatDateTime(_appointment!.startHourDate)
+                      : '';
+              endHourController.text =
+                  _appointment?.endHourDate != null
+                      ? formatDateTime(_appointment!.endHourDate)
+                      : '';
+              _selectedLocationId = _appointment?.locationId;
+              _novoLocal = _appointment?.locationId;
+            }
+          });
 
           if (_appointment != null) {
-            titleController.text = _appointment?.title ?? '';
-            descriptionController.text = _appointment?.description ?? '';
-            startHourController.text =
-                _appointment?.startHourDate != null
-                    ? formatDateTime(_appointment!.startHourDate)
-                    : '';
-            endHourController.text =
-                _appointment?.endHourDate != null
-                    ? formatDateTime(_appointment!.endHourDate)
-                    : '';
-            _selectedLocationId = _appointment?.locationId;
             _loadInvitations();
           }
         }
-      });
+      }
     });
   }
 
@@ -617,20 +634,12 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                     Expanded(
                       flex: _userLocations.isEmpty ? 4 : 1,
                       child: DropdownButtonFormField<int>(
-                        key: ValueKey(
-                          _userLocations.length.toString() +
-                              (_selectedLocationId?.toString() ?? 'null'),
-                        ),
+                        key: ValueKey(_selectedLocationId),
                         style: const TextStyle(
                           fontSize: 16,
                           color: AppColors.grey,
                         ),
-                        value:
-                            _userLocations.any(
-                                  (loc) => loc.id == _selectedLocationId,
-                                )
-                                ? _selectedLocationId
-                                : null,
+                        value: _selectedLocationId,
                         items:
                             _userLocations.isEmpty
                                 ? [
