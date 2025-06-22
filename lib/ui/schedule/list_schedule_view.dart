@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/location.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 import 'package:flutter_agenda_app/repositories/location_repository.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
@@ -30,8 +30,7 @@ class _ListScheduleViewState extends State<ListScheduleView> {
   Widget build(BuildContext context) {
     final locationRepository = context.watch<LocationRepository>();
     final userRepository = context.watch<UserRepository>();
-    final appointmentsRepository =
-        context.watch<AppointmentsRepositorySqlite>();
+    final appointmentsRepository = context.watch<AppointmentsRepository>();
 
     final int? loggedUserId = userRepository.loggedUser?.id;
 
@@ -155,19 +154,19 @@ class _ListScheduleViewState extends State<ListScheduleView> {
 
                         // 👇 SALVA ANTES do context ser potencialmente destruído
                         final appointmentsRepo =
-                            Provider.of<AppointmentsRepositorySqlite>(
+                            Provider.of<AppointmentsRepository>(
                               context,
                               listen: false,
                             );
                         final invitationsRepo =
-                            Provider.of<InvitationRepositorySqlite>(
+                            Provider.of<InvitationRepository>(
                               context,
                               listen: false,
                             );
 
                         final oldAppointment = appointment;
                         final oldInvitations =
-                            await Provider.of<InvitationRepositorySqlite>(
+                            await Provider.of<InvitationRepository>(
                               context,
                               listen: false,
                             ).getInvitationsByAppointmentAndOrganizer(
@@ -175,12 +174,12 @@ class _ListScheduleViewState extends State<ListScheduleView> {
                               appointment.appointmentCreatorId!,
                             );
 
-                        await Provider.of<AppointmentsRepositorySqlite>(
+                        await Provider.of<AppointmentsRepository>(
                           context,
                           listen: false,
                         ).removeAppointment(appointment.id!);
 
-                        await Provider.of<InvitationRepositorySqlite>(
+                        await Provider.of<InvitationRepository>(
                           context,
                           listen: false,
                         ).removeInvitationsByAppointmentId(appointment.id!);

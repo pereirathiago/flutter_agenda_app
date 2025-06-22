@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart' as ap;
-import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
@@ -52,7 +52,7 @@ class _CalendarScheduleViewPageState extends State<CalendarScheduleViewPage> {
   }
 
   Future<List<ap.Appointment>> _fetchAppointments() async {
-    final repo = context.read<AppointmentsRepositorySqlite>();
+    final repo = context.read<AppointmentsRepository>();
     final userRepo = context.read<UserRepository>();
     final userId = userRepo.loggedUser?.id;
 

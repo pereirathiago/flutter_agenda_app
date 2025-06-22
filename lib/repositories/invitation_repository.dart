@@ -9,4 +9,9 @@ abstract class InvitationRepository extends ChangeNotifier {
   Future<void> addInvitation(Invitation invitation);
   Future<void> removeInvitationsByAppointmentId(int id);
   Future<void> removeInvitation(int id);
+  Future<List<Invitation>> getInvitationsByAppointmentAndOrganizer(
+    int appointmentId,
+    int organizerUserId,
+  );
+  Future<void> updateInvitation(Invitation invitation);
 }

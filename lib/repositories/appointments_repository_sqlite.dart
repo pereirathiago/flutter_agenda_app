@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/database/db.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:sqflite/sqflite.dart';
 
-class AppointmentsRepositorySqlite extends ChangeNotifier {
+class AppointmentsRepositorySqlite extends ChangeNotifier
+    implements AppointmentsRepository {
   final DB _dbInstance = DB.instance;
 
   Future<Database> get _database async => await _dbInstance.database;
 
+  @override
   Future<int> addAppointment(Appointment appointment) async {
     try {
       final db = await _database;
@@ -23,6 +26,7 @@ class AppointmentsRepositorySqlite extends ChangeNotifier {
     }
   }
 
+  @override
   Future<void> removeAppointment(int id) async {
     try {
       final db = await _database;
@@ -33,6 +37,7 @@ class AppointmentsRepositorySqlite extends ChangeNotifier {
     }
   }
 
+  @override
   Future<void> updateAppointment(Appointment appointment) async {
     try {
       final db = await _database;
@@ -67,6 +72,7 @@ class AppointmentsRepositorySqlite extends ChangeNotifier {
     }
   }
 
+  @override
   Future<List<Appointment>> getAll() async {
     try {
       final db = await _database;
@@ -78,6 +84,7 @@ class AppointmentsRepositorySqlite extends ChangeNotifier {
     }
   }
 
+  @override
   Future<List<Appointment>> getAppointmentsById(int id) async {
     try {
       final db = await _database;
@@ -94,4 +101,8 @@ class AppointmentsRepositorySqlite extends ChangeNotifier {
       throw Exception('Erro ao listar compromissos 📃🔥👉 $e');
     }
   }
+
+  @override
+  // TODO: implement appointments
+  List<Appointment> get appointments => throw UnimplementedError();
 }

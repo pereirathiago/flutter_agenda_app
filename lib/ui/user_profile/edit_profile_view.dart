@@ -3,8 +3,8 @@ import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/ui/user_profile/widget/editable_profile_avatar.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
-import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
+import 'package:flutter_agenda_app/ui/widgets/app_loading_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_select_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_text_button_widget.dart';
 import 'package:provider/provider.dart';
@@ -265,7 +265,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 },
               ),
               const SizedBox(height: 32),
-              AppButtonWidget(
+              AppLoadingButton(
                 text: 'Salvar alterações',
                 onPressed: () => _saveProfile(context),
               ),

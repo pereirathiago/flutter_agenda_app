@@ -2,7 +2,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/app.dart';
 import 'package:flutter_agenda_app/firebase_options.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/comment_repository.dart';
+import 'package:flutter_agenda_app/repositories/comment_repository_api.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/location_repository.dart';
 import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
@@ -22,14 +26,17 @@ void main() async {
         ChangeNotifierProvider<UserRepository>(
           create: (context) => UserRepositorySqlite(),
         ),
-        ChangeNotifierProvider<AppointmentsRepositorySqlite>(
+        ChangeNotifierProvider<AppointmentsRepository>(
           create: (context) => AppointmentsRepositorySqlite(),
         ),
-        ChangeNotifierProvider<InvitationRepositorySqlite>(
+        ChangeNotifierProvider<InvitationRepository>(
           create: (context) => InvitationRepositorySqlite(),
         ),
         ChangeNotifierProvider<LocationRepository>(
           create: (context) => LocationRepositorySqlite(),
+        ),
+        ChangeNotifierProvider<CommentRepository>(
+          create: (context) => CommentRepositoryApi(),
         ),
       ],
       child: App(),

@@ -2,25 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/models/appointment.dart';
 import 'package:flutter_agenda_app/models/location.dart';
 import 'package:flutter_agenda_app/models/user.dart';
-import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
-import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
+import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
+import 'package:flutter_agenda_app/repositories/location_repository.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:flutter_agenda_app/ui/appointments/new_appointment.dart';
 import 'package:provider/provider.dart';
 
 class InvitationsScreenView extends StatelessWidget {
   const InvitationsScreenView({super.key});
 
   String formatDateTime(DateTime dateTime) {
-  String formatTwoDigits(String input) {
-    final regex = RegExp(r'^\d$');
-    return regex.hasMatch(input) ? '0$input' : input;
-  }
+    String formatTwoDigits(String input) {
+      final regex = RegExp(r'^\d$');
+      return regex.hasMatch(input) ? '0$input' : input;
+    }
 
-  return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} '
-      '${formatTwoDigits(dateTime.hour.toString())}:${formatTwoDigits(dateTime.minute.toString())}';
-}
+    return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} '
+        '${formatTwoDigits(dateTime.hour.toString())}:${formatTwoDigits(dateTime.minute.toString())}';
+  }
 
   Color _getBackgroundColor(int status) {
     final statusColors = {
@@ -41,8 +42,8 @@ class InvitationsScreenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userRepo = context.watch<UserRepository>();
-    final invitationRepo = context.watch<InvitationRepositorySqlite>();
-    final appointmentRepo = context.watch<AppointmentsRepositorySqlite>();
+    final invitationRepo = context.watch<InvitationRepository>();
+    final appointmentRepo = context.watch<AppointmentsRepository>();
 
     final loggedUser = userRepo.loggedUser;
 
@@ -93,6 +94,23 @@ class InvitationsScreenView extends StatelessWidget {
                       color: _getBackgroundColor(invitation.invitationStatus),
                       margin: const EdgeInsets.all(8),
                       child: ListTile(
+                        onTap: () {
+                          if (appointment != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => NewAppointmentView(),
+                                settings: RouteSettings(
+                                  arguments: {
+                                    'appointment': appointment,
+                                    'readonly': true,
+                                    'invitation': true,
+                                  },
+                                ),
+                              ),
+                            );
+                          }
+                        },
                         title: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -114,9 +132,9 @@ class InvitationsScreenView extends StatelessWidget {
                             ),
                             appointment != null
                                 ? FutureBuilder<Location>(
-                                  future: LocationRepositorySqlite().getById(
-                                    appointment.locationId!,
-                                  ),
+                                  future: context
+                                      .read<LocationRepository>()
+                                      .getById(appointment.locationId!),
                                   builder: (context, locationSnapshot) {
                                     final location = locationSnapshot.data;
 
@@ -174,4 +192,3 @@ class InvitationsScreenView extends StatelessWidget {
     );
   }
 }
-
