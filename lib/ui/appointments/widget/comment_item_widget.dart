@@ -6,8 +6,13 @@ import 'package:flutter_agenda_app/shared/app_colors.dart';
 
 class CommentItem extends StatelessWidget {
   final Comment comment;
+  final bool isCurrentUser;
 
-  const CommentItem({super.key, required this.comment});
+  const CommentItem({
+    super.key,
+    required this.comment,
+    required this.isCurrentUser
+  });
 
   ImageProvider? _getProfileImage(String? imagePath) {
     if (imagePath == null) {
@@ -45,7 +50,10 @@ class CommentItem extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryDegrade,
+                    color:
+                        isCurrentUser
+                            ? AppColors.primaryDegrade
+                            : Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -53,9 +61,12 @@ class CommentItem extends StatelessWidget {
                     children: [
                       Text(
                         comment.userName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color:
+                              isCurrentUser
+                                  ? AppColors.primary
+                                  : Colors.black,
                         ),
                       ),
                       const SizedBox(height: 4),

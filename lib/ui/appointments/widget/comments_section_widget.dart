@@ -17,6 +17,16 @@ class CommentsSection extends StatefulWidget {
 
 class _CommentsSectionState extends State<CommentsSection> {
   final TextEditingController _commentController = TextEditingController();
+  late Future<List<Comment>> _commentsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final commentRepo = Provider.of<CommentRepository>(context, listen: false);
+    _commentsFuture = commentRepo.getCommentsByAppointment(
+      widget.appointmentId,
+    );
+  }
 
   Future<void> _addComment(
     CommentRepository commentRepo,
@@ -37,19 +47,83 @@ class _CommentsSectionState extends State<CommentsSection> {
     try {
       await commentRepo.addComment(newComment);
       _commentController.clear();
+      _commentsFuture = commentRepo.getCommentsByAppointment(
+        widget.appointmentId,
+      );
       setState(() {});
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao adicionar comentário: $e')),
+        SnackBar(
+          content: Text('Erro ao adicionar comentário: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
+  }
+
+  Future<void> _deleteComment(String commentId) async {
+    final commentRepo = Provider.of<CommentRepository>(context, listen: false);
+    try {
+      await commentRepo.deleteComment(commentId);
+      _commentsFuture = commentRepo.getCommentsByAppointment(
+        widget.appointmentId,
+      );
+
+      setState(() {});
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Comentário deletado com sucesso'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao deletar comentário: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _confirmDelete(BuildContext context, String commentId) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Deletar comentário'),
+            content: const Text(
+              'Tem certeza que deseja deletar este comentário?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _deleteComment(commentId);
+                },
+                child: const Text(
+                  'Deletar',
+                  style: TextStyle(color: AppColors.delete),
+                ),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final commentRepo = Provider.of<CommentRepository>(context);
     final userRepo = Provider.of<UserRepository>(context);
+    final currentUserId = userRepo.loggedUser?.id.toString();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,7 +136,7 @@ class _CommentsSectionState extends State<CommentsSection> {
           ),
         ),
         FutureBuilder<List<Comment>>(
-          future: commentRepo.getCommentsByAppointment(widget.appointmentId),
+          future: _commentsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -77,7 +151,18 @@ class _CommentsSectionState extends State<CommentsSection> {
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   final comment = snapshot.data![index];
-                  return CommentItem(comment: comment);
+                  final isCurrentUser = comment.userId == currentUserId;
+
+                  return GestureDetector(
+                    onLongPress:
+                        isCurrentUser
+                            ? () => _confirmDelete(context, comment.id)
+                            : null,
+                    child: CommentItem(
+                      comment: comment,
+                      isCurrentUser: isCurrentUser,
+                    ),
+                  );
                 },
               );
             }

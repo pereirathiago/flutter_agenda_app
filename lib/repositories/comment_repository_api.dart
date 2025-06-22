@@ -40,4 +40,15 @@ class CommentRepositoryApi extends ChangeNotifier implements CommentRepository {
       throw Exception('Falha ao adicionar comentário');
     }
   }
+
+  @override
+  Future<void> deleteComment(String commentId) async {
+    final response = await http.delete(Uri.parse('$baseUrl/$commentId'));
+
+    if (response.statusCode == 200) {
+      notifyListeners();
+    } else {
+      throw Exception('Falha ao deletar comentário');
+    }
+  }
 }
