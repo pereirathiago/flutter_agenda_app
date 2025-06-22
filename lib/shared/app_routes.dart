@@ -24,3 +24,5 @@ var appRoutes = <String, WidgetBuilder>{
   '/location': (context) => const LocationListView(),
   '/new-location': (context) => const LocationNewView(),
 };
+
+var baseUrlApi = 'https://68571fc921f5d3463e54822b.mockapi.io/';

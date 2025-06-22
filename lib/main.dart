@@ -4,6 +4,8 @@ import 'package:flutter_agenda_app/app.dart';
 import 'package:flutter_agenda_app/firebase_options.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository.dart';
 import 'package:flutter_agenda_app/repositories/appointments_repository_sqlite.dart';
+import 'package:flutter_agenda_app/repositories/comment_repository.dart';
+import 'package:flutter_agenda_app/repositories/comment_repository_api.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 import 'package:flutter_agenda_app/repositories/invitation_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/location_repository.dart';
@@ -32,6 +34,9 @@ void main() async {
         ),
         ChangeNotifierProvider<LocationRepository>(
           create: (context) => LocationRepositorySqlite(),
+        ),
+        ChangeNotifierProvider<CommentRepository>(
+          create: (context) => CommentRepositoryApi(),
         ),
       ],
       child: App(),
