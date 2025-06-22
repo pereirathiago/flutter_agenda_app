@@ -39,7 +39,7 @@ class _CommentsSectionState extends State<CommentsSection> {
       appointmentId: widget.appointmentId,
       userId: userRepo.loggedUser!.id.toString(),
       userName: userRepo.loggedUser!.fullName,
-      userAvatarUrl: userRepo.loggedUser!.profilePicture!,
+      userAvatarUrl: userRepo.loggedUser!.profilePicture ?? '',
       text: _commentController.text.trim(),
       createdAt: DateTime.now(),
     );
