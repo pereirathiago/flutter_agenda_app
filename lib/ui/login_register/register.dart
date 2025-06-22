@@ -3,8 +3,8 @@ import 'package:flutter_agenda_app/models/user.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
-import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
+import 'package:flutter_agenda_app/ui/widgets/app_loading_button_widget.dart';
 import 'package:provider/provider.dart';
 
 class RegisterView extends StatelessWidget {
@@ -19,10 +19,7 @@ class RegisterView extends StatelessWidget {
 
   Future<void> _registerUser(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    final userRepository = Provider.of<UserRepository>(
-      context,
-      listen: false,
-    );
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
 
     try {
       final user = User(
@@ -144,7 +141,7 @@ class RegisterView extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
 
-                    AppButtonWidget(
+                    AppLoadingButton(
                       text: 'Criar conta',
                       onPressed: () => _registerUser(context),
                     ),
