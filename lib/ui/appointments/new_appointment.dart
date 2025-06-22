@@ -7,6 +7,7 @@ import 'package:flutter_agenda_app/repositories/invitation_repository.dart';
 import 'package:flutter_agenda_app/repositories/location_repository_sqlite.dart';
 import 'package:flutter_agenda_app/repositories/user_repository.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:flutter_agenda_app/ui/appointments/widget/comments_section_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_bar_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
@@ -728,6 +729,13 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                     Divider(color: Colors.grey.shade300, thickness: 1),
                     const SizedBox(height: 8),
                   ],
+                ],
+
+                if (_isReadOnly && _appointment != null) ...[
+                  const SizedBox(height: 24),
+                  CommentsSection(
+                    appointmentId: _appointment?.id?.toString() ?? '',
+                  ),
                 ],
 
                 if (!_isReadOnly)
