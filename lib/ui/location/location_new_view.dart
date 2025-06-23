@@ -10,6 +10,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'dart:ui';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/services.dart';
 
 class LocationNewView extends StatefulWidget {
   const LocationNewView({super.key});
@@ -51,6 +54,44 @@ class _LocationNewViewState extends State<LocationNewView> {
         _stateController.text = _location?.state ?? '';
         _neighborhoodController.text = _location?.neighborhood ?? '';
       }
+    }
+  }
+
+  Future<void> _buscarEnderecoPorCep(String cep) async {
+    final cepLimpo = cep.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cepLimpo.length != 8) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://viacep.com.br/ws/$cepLimpo/json/'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data.containsKey('erro')) {
+          _showError('CEP não encontrado.');
+          return;
+        }
+
+        setState(() {
+          _addressController.text = data['logradouro'] ?? '';
+          _neighborhoodController.text = data['bairro'] ?? '';
+          _cityController.text = data['localidade'] ?? '';
+          _stateController.text = data['uf'] ?? '';
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Endereço preenchido com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        _showError('Erro ao buscar o CEP.');
+      }
+    } catch (e) {
+      _showError('Erro na conexão: ${e.toString()}');
     }
   }
 
@@ -206,7 +247,17 @@ class _LocationNewViewState extends State<LocationNewView> {
                       }
                       return null;
                     },
+                    onChanged: (value) {
+                      if (value.length == 8) {
+                        _buscarEnderecoPorCep(value);
+                      }
+                    },
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(8),
+                    ],
                   ),
+
                   const SizedBox(height: 16),
                   AppInputWidget(
                     label: 'Endereço',
