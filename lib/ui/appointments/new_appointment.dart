@@ -13,6 +13,8 @@ import 'package:flutter_agenda_app/ui/widgets/app_button_widget.dart';
 import 'package:flutter_agenda_app/ui/widgets/app_input_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_agenda_app/models/user.dart';
+import 'package:geocoding/geocoding.dart' as geo;
+import 'package:url_launcher/url_launcher.dart';
 
 class NewAppointmentView extends StatefulWidget {
   const NewAppointmentView({super.key});
@@ -279,6 +281,42 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
     setState(() {
       _invitations = appointmentInvitations;
     });
+  }
+
+  Future<void> _openSelectedAddressInBrowserMap() async {
+    if (_selectedLocationId == null) return;
+
+    final locationRepo = context.read<LocationRepository>();
+    final location = await locationRepo.getById(_selectedLocationId!);
+
+    final fullAddress =
+        '${location.address}, ${location.number}, ${location.neighborhood}, ${location.city}, ${location.state}';
+
+    final encodedAddress = Uri.encodeComponent(fullAddress);
+
+    final fallbackUrl = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
+    );
+
+    try {
+      final launched = await launchUrl(
+        fallbackUrl,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        throw 'Não foi possível abrir o navegador para o Google Maps.';
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao abrir mapa: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void removerConvidado(Invitation invitation) async {
@@ -676,7 +714,13 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                     ),
 
                     const SizedBox(width: 8),
-
+                    if (_isReadOnly && _selectedLocationId != null)
+                      IconButton(
+                        tooltip: 'Ver no mapa',
+                        icon: const Icon(Icons.map, color: AppColors.primary),
+                        onPressed: _openSelectedAddressInBrowserMap,
+                      ),
+                    const SizedBox(width: 8),
                     Visibility(
                       visible: !_isReadOnly,
                       child: IconButton(
