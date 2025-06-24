@@ -177,21 +177,8 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
   }
 
   String formatDateTime(DateTime dateTime) {
-    String formatTwoDigits(String input) {
-      final regex = RegExp(r'^\d$');
-
-      if (regex.hasMatch(input)) {
-        return '0$input';
-      }
-      return input;
-    }
-
-    String period = dateTime.hour < 12 ? 'AM' : 'PM';
-    int hour12 =
-        dateTime.hour > 12
-            ? dateTime.hour - 12
-            : (dateTime.hour == 0 ? 12 : dateTime.hour);
-    return '${dateTime.day}/${formatTwoDigits(dateTime.month.toString())}/${dateTime.year} ${formatTwoDigits(hour12.toString())}:${formatTwoDigits(dateTime.minute.toString())} $period';
+    String formatTwoDigits(int n) => n.toString().padLeft(2, '0');
+    return '${formatTwoDigits(dateTime.day)}/${formatTwoDigits(dateTime.month)}/${dateTime.year} ${formatTwoDigits(dateTime.hour)}:${formatTwoDigits(dateTime.minute)}';
   }
 
   bool _loaded = false;
@@ -673,6 +660,7 @@ class _NewAppointmentViewState extends State<NewAppointmentView> {
                       flex: _userLocations.isEmpty ? 4 : 1,
                       child: DropdownButtonFormField<int>(
                         key: ValueKey(_selectedLocationId),
+                        isExpanded: true, // 👈 ESSENCIAL PARA EVITAR OVERFLOW
                         style: const TextStyle(
                           fontSize: 16,
                           color: AppColors.grey,
