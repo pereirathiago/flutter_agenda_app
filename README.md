@@ -14,11 +14,9 @@ A interface foi desenvolvida com foco em **simplicidade** e **experiência do us
 
 ## Atividades da Equipe
 
-- **Giovanne Ribeiro Mika**: Adaptação do CRUD de compromissos para o uso de banco de dados, desenvolvimento do select box de locais no cadastro de compromissos. Adicionou bugs ao projeto.
-- **Thiago Pereira**: Adaptação do CRUD de usuários e locais para o uso de banco de dados, autenticação de usuários, correção do bug de compartilhamento de locais, 
-implementou alteração de foto de perfil do usuário.
-- **Matheus Andreiczuk**: Adaptação do CRUD e lógica de convites/convidados para o uso de banco de dados e implementação de nova funcionalidade de exclusão de convidados, 
-correção dos demais bugs anteriormente citados.
+- **Giovanne Ribeiro Mika**: Adicionou API para busca de local a partir do CEP. Consertou o bug de fuso horário, além do overflow de pixel na select box de local. Adicionou logo ao app e splash screen.
+- **Thiago Pereira**: Função de adicionar foto no perfil, a partir da câmera do dispositivo. Incrementou a tela de compromissos a fim de possibilitar comentários dos participantes. Adicionou alguns componentes de loading necessários para melhor navegação. Possibilitou ao convidado o acesso completo ao compromisso, que pode comentar e ver quem serão os participantes. Consertou bug da visualização de compromissos no calendário, além de consertar o bug de visualização do select de local.
+- **Matheus Andreiczuk**: Adicionou função de cadastrar local a partir do GPS do dispositivo. Elaborou visualização do local do compromisso, bem como ver o local do compromisso no qual foi convidado, ambos no google maps.
 
 ---
 
@@ -67,15 +65,13 @@ Para instalar e executar o projeto no ambiente local:
 - **Flutter** - Framework para desenvolvimento mobile
 - **Dart** - Linguagem principal da aplicação
 - **Provider** - Gerenciamento de estado
+- **MockAPI** - Consumo de rota POST e GET da funcionalidade dos comentários
 
 ---
 
 ## Bugs Conhecidos
 
-- Após o cadastro de um novo compromisso, sua exibição no calendário dinâmico depende de uma interação manual do usuário na tela (como rolar ou navegar), para que a lista de compromissos seja atualizada e o novo compromisso apareça.
-- O sistema ainda não está configurado para o fuso horário brasileiro (-3 GMT), podendo gerar inconsistências nos horários exibidos.
-- A lista de compromissos pode não aparecer instantaneamente, sendo necessário aguardar um pouco ou trocar de tela e voltar.
-
+- Não há
 ---
 
 ## Funcionalidades Faltantes

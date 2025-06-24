@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agenda_app/shared/app_colors.dart';
+import 'package:flutter/services.dart';
 
 class AppInputWidget extends StatelessWidget {
   final String label;
@@ -9,6 +10,10 @@ class AppInputWidget extends StatelessWidget {
   final bool obscureText;
   final bool readOnly;
   final String? Function(String?)? validator;
+  final void Function(String)? onChanged; // <--- esta linha
+  final List<TextInputFormatter>? inputFormatters;
+
+
 
   const AppInputWidget({
     super.key,
@@ -19,6 +24,8 @@ class AppInputWidget extends StatelessWidget {
     this.obscureText = false,
     this.validator,
     this.readOnly = false,
+    this.onChanged, // <--- Aqui
+    this.inputFormatters,
   });
 
   @override
@@ -33,6 +40,8 @@ class AppInputWidget extends StatelessWidget {
           keyboardType: keyboardType,
           obscureText: obscureText,
           validator: validator,
+          onChanged: onChanged, // <--- Aqui
+          inputFormatters: inputFormatters,
           readOnly: readOnly,
           decoration: InputDecoration(
             hintText: hintText,
