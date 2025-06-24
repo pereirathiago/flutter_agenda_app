@@ -33,7 +33,7 @@ Para instalar e executar o projeto no ambiente local:
 2. Acesse o diretório do projeto:
 
     ```bash
-    cd caminho/agenda-flutter-mobile
+    cd caminho/flutter_agenda_app
     ```
 
 3. Instale as dependências com o Flutter:
