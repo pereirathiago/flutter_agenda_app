@@ -71,7 +71,7 @@ Para instalar e executar o projeto no ambiente local:
 
 ## Bugs Conhecidos
 
-- Não há
+- Apenas desconhecidos
 ---
 
 ## Funcionalidades Faltantes
